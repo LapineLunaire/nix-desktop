@@ -11,6 +11,7 @@
     ./persistence.nix
     ./sops.nix
     ./pipewire.nix
+    ./samba-mounts.nix
     ./desktop-packages.nix
   ];
 
