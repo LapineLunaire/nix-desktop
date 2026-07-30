@@ -58,4 +58,5 @@
   services.xserver.videoDrivers = ["nvidia"];
 
   system.stateVersion = "26.11";
+  home-manager.users.carmilla.home.stateVersion = "26.11";
 }

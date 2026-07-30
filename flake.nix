@@ -60,6 +60,8 @@
 
   outputs = {
     nixpkgs,
+    home-manager,
+    nixvim,
     impermanence,
     lanzaboote,
     sops-nix,
@@ -73,6 +75,16 @@
         overlays = [overlays.additions overlays.modifications];
         config.allowUnfree = true;
       };
+
+    # The home-manager settings both platforms share; every user gets the nixvim home module.
+    homeManagerSettings = {
+      home-manager = {
+        useGlobalPkgs = true;
+        useUserPackages = true;
+        backupFileExtension = "bak";
+        sharedModules = [nixvim.homeModules.nixvim];
+      };
+    };
   in {
     formatter = nixpkgs.lib.genAttrs ["x86_64-linux" "aarch64-darwin"] (system: nixpkgs.legacyPackages.${system}.alejandra);
 
@@ -86,6 +98,8 @@
         impermanence.nixosModules.impermanence
         lanzaboote.nixosModules.lanzaboote
         sops-nix.nixosModules.sops
+        home-manager.nixosModules.home-manager
+        homeManagerSettings
         ./hosts/camellya
         ./users/carmilla
       ];
