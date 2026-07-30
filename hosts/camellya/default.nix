@@ -10,6 +10,7 @@
     ./hardware-configuration.nix
     ./persistence.nix
     ./sops.nix
+    ./pipewire.nix
     ./desktop-packages.nix
   ];
 
