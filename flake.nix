@@ -58,7 +58,13 @@
     };
   };
 
-  outputs = {nixpkgs, ...}: let
+  outputs = {
+    nixpkgs,
+    impermanence,
+    lanzaboote,
+    sops-nix,
+    ...
+  } @ inputs: let
     overlays = import ./overlays.nix;
 
     pkgsFor = system:
@@ -72,5 +78,17 @@
 
     # tibia, the only package here, builds for x86_64-linux alone.
     packages.x86_64-linux = import ./pkgs (pkgsFor "x86_64-linux");
+
+    nixosConfigurations.camellya = nixpkgs.lib.nixosSystem {
+      specialArgs = {inherit inputs;};
+      modules = [
+        {nixpkgs.pkgs = pkgsFor "x86_64-linux";}
+        impermanence.nixosModules.impermanence
+        lanzaboote.nixosModules.lanzaboote
+        sops-nix.nixosModules.sops
+        ./hosts/camellya
+        ./users/carmilla
+      ];
+    };
   };
 }
