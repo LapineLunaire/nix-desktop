@@ -62,6 +62,7 @@
     nixpkgs,
     home-manager,
     nixvim,
+    nix-darwin,
     impermanence,
     lanzaboote,
     sops-nix,
@@ -101,6 +102,17 @@
         home-manager.nixosModules.home-manager
         homeManagerSettings
         ./hosts/camellya
+        ./users/carmilla
+      ];
+    };
+
+    darwinConfigurations.silverwolf = nix-darwin.lib.darwinSystem {
+      specialArgs = {inherit inputs;};
+      modules = [
+        {nixpkgs.pkgs = pkgsFor "aarch64-darwin";}
+        home-manager.darwinModules.home-manager
+        homeManagerSettings
+        ./hosts/silverwolf
         ./users/carmilla
       ];
     };
