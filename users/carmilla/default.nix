@@ -2,6 +2,7 @@
 # home.stateVersion is declared per host alongside system.stateVersion: it records the nixpkgs release that host was installed from, which no flag in this module can stand in for.
 {
   config,
+  inputs,
   lib,
   pkgs,
   ...
@@ -20,7 +21,7 @@
       uid = 1000;
       description = "Carmilla";
       hashedPasswordFile = config.sops.secrets."carmilla-password-hash".path;
-      extraGroups = ["wheel" "video" "audio" "input"];
+      extraGroups = ["wheel" "networkmanager" "video" "audio" "input"];
     };
 
   home-manager.users.carmilla = {
@@ -30,7 +31,10 @@
     ...
   }: {
     imports = [
+      inputs.plasma-manager.homeModules.plasma-manager
+      ./desktop.nix
       ./packages.nix
+      ./plasma.nix
       ./programs.nix
     ];
 

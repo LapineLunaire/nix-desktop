@@ -5,10 +5,12 @@
 }: {
   imports = [
     ../../modules/nixos/host-base
+    ../../modules/nixos/desktop
     ../../modules/nixos/secure-boot.nix
     ./hardware-configuration.nix
     ./persistence.nix
     ./sops.nix
+    ./desktop-packages.nix
   ];
 
   networking.hostName = "camellya";
