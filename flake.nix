@@ -58,7 +58,19 @@
     };
   };
 
-  outputs = {nixpkgs, ...}: {
+  outputs = {nixpkgs, ...}: let
+    overlays = import ./overlays.nix;
+
+    pkgsFor = system:
+      import nixpkgs {
+        inherit system;
+        overlays = [overlays.additions overlays.modifications];
+        config.allowUnfree = true;
+      };
+  in {
     formatter = nixpkgs.lib.genAttrs ["x86_64-linux" "aarch64-darwin"] (system: nixpkgs.legacyPackages.${system}.alejandra);
+
+    # tibia, the only package here, builds for x86_64-linux alone.
+    packages.x86_64-linux = import ./pkgs (pkgsFor "x86_64-linux");
   };
 }
