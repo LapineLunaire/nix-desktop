@@ -25,9 +25,9 @@
     enable = true;
     settings = {
       user = {
-        name = "Lapine";
-        email = "lapine@lunaire.eu";
-        signingkey = "${config.home.homeDirectory}/.ssh/id_ed25519_sk_rk_lapine";
+        name = "Carmilla";
+        email = "carmilla@lunaire.eu";
+        signingkey = "${config.home.homeDirectory}/.ssh/id_ed25519_sk_rk_carmilla";
       };
       core = {
         editor = "nvim";
@@ -143,8 +143,8 @@
     package = pkgs.openssh.override {withFIDO = true;};
     settings."*" = {
       identityFile = [
-        "~/.ssh/id_ed25519_sk_rk_lapine"
-        "~/.ssh/id_ed25519_sk_rk_lapine2"
+        "~/.ssh/id_ed25519_sk_rk_carmilla"
+        "~/.ssh/id_ed25519_sk_rk_carmilla2"
       ];
       identitiesOnly = true;
     };

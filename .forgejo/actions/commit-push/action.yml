@@ -21,8 +21,8 @@ runs:
         umask 077
         key="$RUNNER_TEMP/commit-signing-key"
         printf '%s\n' "$SSH_SIGNING_KEY" > "$key"
-        git config user.name "Lapine"
-        git config user.email "lapine@lunaire.eu"
+        git config user.name "Carmilla"
+        git config user.email "carmilla@lunaire.eu"
         git config gpg.format ssh
         git config user.signingkey "$key"
         git config commit.gpgsign true
