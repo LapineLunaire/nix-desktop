@@ -13,6 +13,12 @@
   programs.claude-code = {
     enable = true;
     settings.includeCoAuthoredBy = false;
+    plugins.superpowers = pkgs.fetchFromGitHub {
+      owner = "obra";
+      repo = "superpowers";
+      rev = "44c9b2d6e889982ac18c27d05a19fefe335194e1";
+      hash = "sha256-fnl+HbPL2qD5Zgz8a1NctjFJSqu6UsyHJAhQMLQNXXc=";
+    };
   };
 
   programs.direnv = {
