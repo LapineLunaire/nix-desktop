@@ -1,4 +1,4 @@
-# Desktop baseline: NetworkManager, the Wayland and Proton session variables, waydroid, and the font set. A desktop's own app choices live on the host importing this.
+# Desktop baseline: NetworkManager, the Wayland and Proton session variables, the ssh agent, waydroid, and the font set. A desktop's own app choices live on the host importing this.
 {
   inputs,
   pkgs,
@@ -25,6 +25,11 @@
   nix.settings = inputs.aagl.nixConfig;
 
   security.rtkit.enable = true;
+
+  programs.ssh = {
+    startAgent = true;
+    enableAskPassword = true;
+  };
 
   environment.sessionVariables = {
     NIXOS_OZONE_WL = "1";

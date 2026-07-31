@@ -1,12 +1,10 @@
-# The home config the Linux desktops get: the ssh-agent user service and the xdg user directories.
+# The home config the Linux desktops get: the xdg user directories.
 {
   lib,
   pkgs,
   ...
 }: {
   config = lib.mkIf pkgs.stdenv.hostPlatform.isLinux {
-    services.ssh-agent.enable = true;
-
     xdg = {
       enable = true;
 
