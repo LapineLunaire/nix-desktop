@@ -36,11 +36,7 @@ nh os switch .
 nh darwin switch .
 ```
 
-`core.hooksPath` is per clone and not carried in the repo, so point it at the tracked hooks once after cloning:
-
-```sh
-git config core.hooksPath .githooks
-```
+`nix develop` gives the tools for working on the repo, and direnv enters it from `.envrc` on its own. Its shell hook sets `core.hooksPath`, which is per clone and cannot be carried in the repo, so the tracked hooks apply from the first time the shell is entered.
 
 Editing secrets needs the age key derived from camellya's host key; the `sops` shell alias on Linux does that derivation:
 

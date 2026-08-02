@@ -77,7 +77,6 @@
         config.allowUnfree = true;
       };
 
-    # The home-manager settings both platforms share; every user gets the nixvim home module.
     homeManagerSettings = {
       home-manager = {
         useGlobalPkgs = true;
@@ -86,10 +85,28 @@
         sharedModules = [nixvim.homeModules.nixvim];
       };
     };
+    systems = ["x86_64-linux" "aarch64-darwin"];
+    forEachSystem = nixpkgs.lib.genAttrs systems;
   in {
-    formatter = nixpkgs.lib.genAttrs ["x86_64-linux" "aarch64-darwin"] (system: nixpkgs.legacyPackages.${system}.alejandra);
+    formatter = forEachSystem (system: nixpkgs.legacyPackages.${system}.alejandra);
 
-    # tibia, the only package here, builds for x86_64-linux alone.
+    devShells = forEachSystem (system: let
+      pkgs = pkgsFor system;
+    in {
+      default = pkgs.mkShell {
+        packages = with pkgs; [
+          alejandra
+          nixd
+          sops
+          ssh-to-age
+        ];
+
+        shellHook = ''
+          git config core.hooksPath .githooks
+        '';
+      };
+    });
+
     packages.x86_64-linux = import ./pkgs (pkgsFor "x86_64-linux");
 
     nixosConfigurations.camellya = nixpkgs.lib.nixosSystem {
