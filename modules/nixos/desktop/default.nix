@@ -1,11 +1,8 @@
-# Desktop baseline: NetworkManager, the Wayland and Proton session variables, the ssh agent, waydroid, and the font set. A desktop's own app choices live on the host importing this.
-{
-  inputs,
-  pkgs,
-  ...
-}: {
+# Desktop baseline: NetworkManager, the Wayland and Proton session variables, the ssh agent and waydroid. A desktop's own app choices live on the host importing this.
+{inputs, ...}: {
   imports = [
     inputs.aagl.nixosModules.default
+    ./fonts.nix
     ./services.nix
   ];
 
@@ -44,34 +41,4 @@
     "/share/applications"
     "/share/xdg-desktop-portal"
   ];
-
-  fonts = {
-    packages = with pkgs; [
-      nerd-fonts.jetbrains-mono
-      noto-fonts
-      noto-fonts-cjk-sans
-      noto-fonts-color-emoji
-    ];
-
-    fontconfig = {
-      subpixel.rgba = "rgb";
-
-      # The CJK entries pin Han characters to the Japanese faces; fontconfig falls back to the Korean ones on its own.
-      defaultFonts = {
-        monospace = [
-          "JetBrainsMono Nerd Font"
-          "Noto Sans Mono CJK JP"
-        ];
-        sansSerif = [
-          "Noto Sans"
-          "Noto Sans CJK JP"
-        ];
-        serif = [
-          "Noto Serif"
-          "Noto Serif CJK JP"
-        ];
-        emoji = ["Noto Color Emoji"];
-      };
-    };
-  };
 }
