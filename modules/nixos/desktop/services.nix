@@ -1,5 +1,7 @@
-# The services a desktop session runs: kmscon, earlyoom, the Plasma login manager and session, and PipeWire.
+# The services a desktop session runs: kmscon, earlyoom, pcscd, the Plasma login manager and session, and PipeWire.
 {...}: {
+  services.pcscd.enable = true;
+
   services.kmscon = {
     enable = true;
     useXkbConfig = true;

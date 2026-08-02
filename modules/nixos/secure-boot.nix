@@ -17,6 +17,7 @@ in {
   # tctiEnvironment sets TPM2TOOLS_TCTI so tpm2-tools commands work without explicitly specifying a TCTI string.
   security.tpm2 = {
     enable = true;
+    pkcs11.enable = true;
     tctiEnvironment.enable = true;
   };
 }
