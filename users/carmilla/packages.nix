@@ -49,6 +49,7 @@
     )
     ++ lib.optionals pkgs.stdenv.hostPlatform.isLinux (
       with pkgs; [
+        dino
         discord
         fluffychat
         heroic
