@@ -3,7 +3,9 @@
   config,
   pkgs,
   ...
-}: {
+}: let
+  carmilla = config.users.users.carmilla;
+in {
   # mount.cifs, needed to mount the shares below.
   environment.systemPackages = [pkgs.cifs-utils];
 
@@ -13,8 +15,10 @@
       fsType = "cifs";
       options = [
         "credentials=${config.sops.templates."samba-credentials".path}"
-        "uid=1000"
-        "gid=100"
+        "uid=${toString carmilla.uid}"
+        "gid=${toString config.users.groups.${carmilla.group}.gid}"
+        "seal"
+        "_netdev"
         "x-systemd.automount"
         "noauto"
         "x-systemd.idle-timeout=60"
