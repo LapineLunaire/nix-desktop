@@ -16,8 +16,9 @@
     settings = {
       PermitRootLogin = "no";
       PasswordAuthentication = false;
+      KbdInteractiveAuthentication = false;
+      AuthenticationMethods = "publickey";
     };
-    # sops-nix derives its age decryption key from this host key.
     hostKeys = [
       {
         path = "/etc/ssh/ssh_host_ed25519_key";

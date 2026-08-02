@@ -1,10 +1,9 @@
-# Impermanence baseline for every host: machine identity, the SSH host key (which also derives the sops age key), systemd state, and logs. Hosts append their service directories in their own persistence.nix.
+# Impermanence baseline for every host: machine identity, the SSH host key (which also derives the sops age key), and service state. Hosts add anything outside /var in their own persistence.nix.
 {...}: {
   environment.persistence."/persist" = {
     hideMounts = true;
     directories = [
-      "/var/lib/nixos"
-      "/var/lib/systemd"
+      "/var/lib"
       "/var/log"
     ];
     files = [

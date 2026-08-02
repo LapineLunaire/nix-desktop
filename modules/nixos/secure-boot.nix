@@ -1,4 +1,4 @@
-# Lanzaboote secure boot for hosts with an enrolled key set, replacing systemd-boot: it owns the sbctl PKI bundle's directory, its persistence entry, and the sbctl and TPM2 tooling.
+# Lanzaboote secure boot for hosts with an enrolled key set, replacing systemd-boot: the sbctl PKI bundle's path and the sbctl and TPM2 tooling. sbctl create-keys makes the directory at bootstrap, and it persists as part of /var/lib in host-base/persistence.nix.
 {pkgs, ...}: let
   pkiBundle = "/var/lib/sbctl";
 in {
@@ -8,13 +8,6 @@ in {
     inherit pkiBundle;
     enable = true;
   };
-
-  # sbctl create-keys writes into the bundle directory, so pre-create it with restrictive modes and persist it across reboots.
-  systemd.tmpfiles.rules = [
-    "d '${pkiBundle}' 0700 root root - -"
-    "z '${pkiBundle}' 0700 root root - -"
-  ];
-  environment.persistence."/persist".directories = [pkiBundle];
 
   environment.systemPackages = with pkgs; [
     sbctl
