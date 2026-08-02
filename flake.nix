@@ -70,11 +70,14 @@
   } @ inputs: let
     overlays = import ./overlays.nix;
 
-    pkgsFor = system:
+    pkgsFor = {
+      system,
+      extraConfig ? {},
+    }:
       import nixpkgs {
         inherit system;
         overlays = [overlays.additions overlays.modifications];
-        config.allowUnfree = true;
+        config = {allowUnfree = true;} // extraConfig;
       };
 
     homeManagerSettings = {
@@ -91,7 +94,7 @@
     formatter = forEachSystem (system: nixpkgs.legacyPackages.${system}.alejandra);
 
     devShells = forEachSystem (system: let
-      pkgs = pkgsFor system;
+      pkgs = pkgsFor {inherit system;};
     in {
       default = pkgs.mkShell {
         packages = with pkgs; [
@@ -107,12 +110,17 @@
       };
     });
 
-    packages.x86_64-linux = import ./pkgs (pkgsFor "x86_64-linux");
+    packages = forEachSystem (system: import ./pkgs (pkgsFor {inherit system;}));
 
     nixosConfigurations.camellya = nixpkgs.lib.nixosSystem {
       specialArgs = {inherit inputs;};
       modules = [
-        {nixpkgs.pkgs = pkgsFor "x86_64-linux";}
+        {
+          nixpkgs.pkgs = pkgsFor {
+            system = "x86_64-linux";
+            extraConfig.cudaSupport = true;
+          };
+        }
         impermanence.nixosModules.impermanence
         lanzaboote.nixosModules.lanzaboote
         sops-nix.nixosModules.sops
@@ -126,7 +134,7 @@
     darwinConfigurations.silverwolf = nix-darwin.lib.darwinSystem {
       specialArgs = {inherit inputs;};
       modules = [
-        {nixpkgs.pkgs = pkgsFor "aarch64-darwin";}
+        {nixpkgs.pkgs = pkgsFor {system = "aarch64-darwin";};}
         home-manager.darwinModules.home-manager
         homeManagerSettings
         ./hosts/silverwolf
