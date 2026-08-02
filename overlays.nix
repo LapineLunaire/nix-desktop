@@ -17,6 +17,7 @@
 
     ffmpeg-full = prev.ffmpeg-full.override {
       withUnfree = true;
+      withCudaNVCC = false;
     };
 
     mpv = prev.mpv.override {
