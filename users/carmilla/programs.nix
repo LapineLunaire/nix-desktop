@@ -253,7 +253,7 @@
         # Use CoW reflinks on supported filesystems (ZFS, btrfs), falling back to a regular copy. --sparse=always avoids writing zero blocks explicitly.
         cp = "cp --reflink=auto --sparse=always";
         # Derive the sops age key on the fly from the SSH host key. Requires elevated privileges to read /etc/ssh/ssh_host_ed25519_key.
-        sops = "SOPS_AGE_KEY_FILE=<(doas cat /etc/ssh/ssh_host_ed25519_key | ssh-to-age -private-key) sops";
+        sops = "SOPS_AGE_KEY=\"$(doas cat /etc/ssh/ssh_host_ed25519_key | ssh-to-age -private-key)\" sops";
       };
   };
 }
