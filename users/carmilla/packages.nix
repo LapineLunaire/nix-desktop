@@ -53,6 +53,7 @@
         fluffychat
         heroic
         high-tide
+        kaidan
         minisign
         mission-center
         mpv
