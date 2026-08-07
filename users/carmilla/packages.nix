@@ -49,6 +49,7 @@
     )
     ++ lib.optionals pkgs.stdenv.hostPlatform.isLinux (
       with pkgs; [
+        davinci-resolve
         dino
         discord
         fluffychat
@@ -60,6 +61,7 @@
         mpv
         pciutils
         prismlauncher
+        protonplus
         tibia
         traceroute
         usbutils
