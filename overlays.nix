@@ -2,7 +2,7 @@
 {
   additions = final: _prev: import ./pkgs final;
 
-  modifications = final: prev: {
+  modifications = _final: prev: {
     winbox4 = prev.winbox4.overrideAttrs (old: {
       postInstall =
         (old.postInstall or "")
@@ -13,23 +13,6 @@
 
     discord = prev.discord.override {
       commandLineArgs = "--force-device-scale-factor=1";
-    };
-
-    ffmpeg-full = prev.ffmpeg-full.override {
-      withUnfree = true;
-      withCudaNVCC = false;
-      # frei0r pulls in gavl, which needs libdrm and so is Linux-only
-      withFrei0r = prev.stdenv.hostPlatform.isLinux;
-    };
-
-    mpv = prev.mpv.override {
-      mpv-unwrapped = prev.mpv-unwrapped.override {
-        ffmpeg = final.ffmpeg-full;
-      };
-    };
-
-    yt-dlp = prev.yt-dlp.override {
-      ffmpeg-headless = final.ffmpeg-full;
     };
   };
 }

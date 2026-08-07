@@ -14,7 +14,7 @@
       duf
       eza
       fd
-      ffmpeg-full
+      ffmpeg
       firefox
       gping
       iperf3
