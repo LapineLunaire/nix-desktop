@@ -18,6 +18,8 @@
     ffmpeg-full = prev.ffmpeg-full.override {
       withUnfree = true;
       withCudaNVCC = false;
+      # frei0r pulls in gavl, which needs libdrm and so is Linux-only
+      withFrei0r = prev.stdenv.hostPlatform.isLinux;
     };
 
     mpv = prev.mpv.override {
