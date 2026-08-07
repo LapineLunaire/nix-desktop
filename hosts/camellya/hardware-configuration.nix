@@ -80,7 +80,7 @@
     # Blackwell (RTX 50-series) requires the open kernel modules; the proprietary modules don't support it.
     open = true;
     nvidiaSettings = true;
-    package = config.boot.kernelPackages.nvidiaPackages.stable;
+    package = config.boot.kernelPackages.nvidiaPackages.latest;
     powerManagement.enable = true;
   };
 }
