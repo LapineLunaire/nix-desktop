@@ -1,5 +1,6 @@
 {...}: {
   services.dbus.implementation = "broker";
+  services.fstrim.enable = true;
   services.fwupd.enable = true;
 
   # NTS (RFC 8915) authenticates NTP over TLS, so an on-path attacker cannot spoof time responses.
