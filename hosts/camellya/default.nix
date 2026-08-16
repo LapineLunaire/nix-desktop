@@ -10,6 +10,7 @@
     ./hardware-configuration.nix
     ./persistence.nix
     ./sops.nix
+    ./desktop-packages.nix
   ];
 
   networking.hostName = "camellya";
