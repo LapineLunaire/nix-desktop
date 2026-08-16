@@ -5,6 +5,7 @@
 }: {
   imports = [
     ../../modules/nixos/host-base
+    ../../modules/nixos/desktop
     ../../modules/nixos/secure-boot.nix
     ./hardware-configuration.nix
     ./persistence.nix
@@ -16,6 +17,11 @@
   time.timeZone = "Europe/Amsterdam";
 
   console.keyMap = "colemak";
+  services.xserver.xkb = {
+    layout = "us,us";
+    variant = "colemak,";
+    options = "grp:win_space_toggle";
+  };
 
   host.flakePath = "/persist/nix-config";
 
