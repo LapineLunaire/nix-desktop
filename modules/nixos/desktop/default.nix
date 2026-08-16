@@ -1,6 +1,7 @@
 {inputs, ...}: {
   imports = [
     inputs.aagl.nixosModules.default
+    ./fonts.nix
     ./services.nix
   ];
 
