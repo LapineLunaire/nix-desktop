@@ -5,6 +5,7 @@
 }: {
   imports = [
     ../../modules/nixos/host-base
+    ../../modules/nixos/secure-boot.nix
     ./hardware-configuration.nix
     ./persistence.nix
     ./sops.nix

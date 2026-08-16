@@ -64,6 +64,7 @@
     home-manager,
     nixvim,
     impermanence,
+    lanzaboote,
     sops-nix,
     ...
   } @ inputs: let
@@ -127,6 +128,7 @@
           };
         }
         impermanence.nixosModules.impermanence
+        lanzaboote.nixosModules.lanzaboote
         sops-nix.nixosModules.sops
         home-manager.nixosModules.home-manager
         homeManagerSettings
