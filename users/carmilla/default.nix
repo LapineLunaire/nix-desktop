@@ -1,6 +1,7 @@
 # home.stateVersion is declared per host alongside system.stateVersion, since it records the release that host was installed from.
 {
   config,
+  inputs,
   lib,
   pkgs,
   ...
@@ -29,8 +30,10 @@
     ...
   }: {
     imports = [
+      inputs.plasma-manager.homeModules.plasma-manager
       ./desktop.nix
       ./packages.nix
+      ./plasma.nix
       ./programs.nix
     ];
 
