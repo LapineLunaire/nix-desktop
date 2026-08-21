@@ -31,7 +31,7 @@
   tmpDirs.size = "16G";
 
   # A kernel rebuilt with X86_NATIVE_CPU, which detects the CPU it is compiled on: camellya must be built on itself.
-  boot.kernelPackages = pkgs.linuxPackages_7_1.extend (
+  boot.kernelPackages = pkgs.linuxPackages_7_2.extend (
     _: super: {
       kernel = super.kernel.override {
         structuredExtraConfig = {
