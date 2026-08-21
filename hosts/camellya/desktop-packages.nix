@@ -3,6 +3,7 @@
     elisa
     kate
     konsole
+    kwin-x11
   ];
 
   programs.nix-ld.enable = true;
