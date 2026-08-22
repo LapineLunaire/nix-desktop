@@ -1,4 +1,4 @@
-# The nixpkgs overlays every instance carries: additions exposes pkgs/ as pkgs.<name>, and modifications wraps packages that need different arguments than nixpkgs gives them.
+# The nixpkgs overlays every instance carries: additions exposes pkgs/ as pkgs.<name>, and modifications overrides packages that need wrapping.
 {
   additions = final: _prev: import ./pkgs final;
 
