@@ -1,3 +1,4 @@
+# The services a graphical host runs: the smartcard daemon, a KMS console, the OOM killer, the Plasma session and its login manager, and PipeWire.
 {...}: {
   services.pcscd.enable = true;
 

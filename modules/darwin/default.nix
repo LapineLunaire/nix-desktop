@@ -1,12 +1,14 @@
+# Base nix-darwin for Mac hosts: the shell, the system-wide tooling, and the nix daemon settings, on top of the platform-neutral option namespace and nix settings.
 {
   config,
   lib,
+  outputs,
   pkgs,
   ...
 }: {
   imports = [
-    ../host.nix
-    ../nix-settings.nix
+    outputs.modules.host
+    outputs.modules.nix-settings
   ];
 
   programs.zsh.enable = true;

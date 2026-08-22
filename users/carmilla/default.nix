@@ -1,4 +1,5 @@
-# home.stateVersion is declared per host alongside system.stateVersion, since it records the release that host was installed from.
+# carmilla: the interactive account on every system, its OS side and its home-manager wiring. On NixOS the login password comes from the carmilla-password-hash sops secret, which each host declares.
+# home.stateVersion is declared per host alongside system.stateVersion, since it records the nixpkgs release that host was installed from.
 {
   config,
   inputs,
@@ -44,7 +45,7 @@
 
     programs.home-manager.enable = true;
 
-    # sd-switch starts new and changed systemd user services during activation.
+    # Activate new and changed systemd user services on switch, without a logout and login cycle.
     systemd.user.startServices = lib.mkIf pkgs.stdenv.hostPlatform.isLinux "sd-switch";
   };
 }

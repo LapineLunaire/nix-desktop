@@ -1,9 +1,10 @@
+# The services every full host runs: fstrim, fwupd, NTS-authenticated chrony, and sshd, plus the sops age key derived from the persisted host key.
 {...}: {
   services.dbus.implementation = "broker";
   services.fstrim.enable = true;
   services.fwupd.enable = true;
 
-  # NTS (RFC 8915) authenticates NTP over TLS, so an on-path attacker cannot spoof time responses.
+  # NTS (RFC 8915) authenticates the time source over TLS, which prevents an on-path attacker from spoofing responses.
   services.chrony = {
     enable = true;
     enableNTS = true;
@@ -18,6 +19,7 @@
       KbdInteractiveAuthentication = false;
       AuthenticationMethods = "publickey";
     };
+    # sops-nix derives its age decryption key from this host key.
     hostKeys = [
       {
         path = "/etc/ssh/ssh_host_ed25519_key";
@@ -26,6 +28,6 @@
     ];
   };
 
-  # sops-nix derives its age key from the persisted copy of the host key. Each host's sops.nix adds its own defaultSopsFile and secrets.
+  # Points at the persisted copy, which sits on a real filesystem marked neededForBoot, so the key is readable whenever sops-nix runs. Each host's sops.nix adds its own defaultSopsFile and secrets.
   sops.age.sshKeyPaths = ["/persist/etc/ssh/ssh_host_ed25519_key"];
 }

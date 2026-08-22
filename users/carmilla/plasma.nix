@@ -1,3 +1,4 @@
+# carmilla's Plasma workspace: the look and feel, panels, hotkeys, and the wallpaper images read out of the flake checkout.
 {
   lib,
   osConfig,

@@ -1,3 +1,4 @@
+# System-wide programs for full hosts: the login shell, an editor for root shells, nh, and the ghostty terminfo.
 {
   config,
   pkgs,
@@ -5,7 +6,7 @@
 }: {
   programs.zsh.enable = true;
 
-  # System-wide neovim so root shells have an editor; carmilla's configured neovim comes from home-manager.
+  # System-wide neovim so root shells have an editor. The user's configured neovim comes from home-manager.
   programs.neovim = {
     enable = true;
     viAlias = true;

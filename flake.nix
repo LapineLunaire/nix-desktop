@@ -60,6 +60,7 @@
   };
 
   outputs = {
+    self,
     nixpkgs,
     home-manager,
     nixvim,
@@ -69,6 +70,8 @@
     sops-nix,
     ...
   } @ inputs: let
+    inherit (self) outputs;
+
     overlays = import ./overlays.nix;
 
     pkgsFor = {
@@ -81,17 +84,36 @@
         config = {allowUnfree = true;} // extraConfig;
       };
 
+    specialArgs = {inherit inputs outputs;};
+
     homeManagerSettings = {
       home-manager = {
         useGlobalPkgs = true;
         useUserPackages = true;
         backupFileExtension = "bak";
+        extraSpecialArgs = specialArgs;
         sharedModules = [nixvim.homeModules.nixvim];
       };
     };
     systems = ["x86_64-linux" "aarch64-darwin"];
     forEachSystem = nixpkgs.lib.genAttrs systems;
   in {
+    # Platform-neutral modules, read by both the NixOS and the darwin base.
+    modules = {
+      host = ./modules/host.nix;
+      nix-settings = ./modules/nix-settings.nix;
+    };
+
+    # Shared modules addressable as outputs.nixosModules.<name> from any nesting depth.
+    nixosModules = {
+      host-base = ./modules/nixos/host-base;
+      desktop = ./modules/nixos/desktop;
+      secure-boot = ./modules/nixos/secure-boot.nix;
+      security = ./modules/nixos/security.nix;
+    };
+
+    darwinModules.base = ./modules/darwin;
+
     formatter = forEachSystem (system: nixpkgs.legacyPackages.${system}.alejandra);
 
     devShells = forEachSystem (system: let
@@ -119,7 +141,7 @@
       ) (import ./pkgs pkgs));
 
     nixosConfigurations.camellya = nixpkgs.lib.nixosSystem {
-      specialArgs = {inherit inputs;};
+      inherit specialArgs;
       modules = [
         {
           nixpkgs.pkgs = pkgsFor {
@@ -139,7 +161,7 @@
     };
 
     darwinConfigurations.silverwolf = nix-darwin.lib.darwinSystem {
-      specialArgs = {inherit inputs;};
+      inherit specialArgs;
       modules = [
         {nixpkgs.pkgs = pkgsFor {system = "aarch64-darwin";};}
         home-manager.darwinModules.home-manager

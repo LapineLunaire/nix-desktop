@@ -1,3 +1,4 @@
+# carmilla's home-manager programs: the shell, the terminal tooling, the editors, and the desktop applications they configure.
 {
   config,
   lib,
@@ -106,7 +107,7 @@
 
   programs.nixvim = {
     enable = true;
-    # nixvim builds against the host's nixpkgs instance.
+    # Reuse the host's nixpkgs instance for nixvim's packages.
     nixpkgs.pkgs = pkgs;
     defaultEditor = true;
     viAlias = true;

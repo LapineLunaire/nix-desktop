@@ -1,3 +1,4 @@
+# Base NixOS for graphical hosts: NetworkManager, the Wayland session variables, audio and Wine kernel bits, and the aagl launchers with their binary cache, on top of the font set and the desktop services.
 {inputs, ...}: {
   imports = [
     inputs.aagl.nixosModules.default

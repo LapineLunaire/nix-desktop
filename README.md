@@ -14,17 +14,20 @@ The checkout lives at `/persist/nix-config` on camellya and `~/projects/nix-conf
 ## Structure
 
 ```
-flake.nix       Inputs, the two system definitions, and the packages output
+flake.nix       Inputs, the two system definitions, the module export surface, and the packages output
 hosts/          Per-host hardware, secrets, persistence, and app choices
 modules/        host.nix and nix-settings.nix are platform-neutral and imported from both sides
-  nixos/host-base/  Boot, escalation, locale, firewall, hardening, persistence, temp dirs
+  nixos/host-base/  Boot, escalation, locale, firewall, persistence, temp dirs
   nixos/desktop/    NetworkManager, the Wayland session, fonts, Plasma, PipeWire
+  nixos/security.nix     Kernel, network, and user-account hardening
   nixos/secure-boot.nix  Lanzaboote, imported by hosts with enrolled keys
   darwin/           The darwin counterpart of host-base
 users/carmilla/ The account, the home-manager modules, and the wallpapers
 pkgs/           The tibia client, exposed through the additions overlay
 overlays.nix    additions (pkgs/) and modifications (overridden nixpkgs packages)
 ```
+
+Shared modules are reached as `outputs.nixosModules.<name>`, the darwin base as `outputs.darwinModules.base`, and the two platform-neutral ones as `outputs.modules.<name>`, which works from any nesting depth.
 
 ## Usage
 

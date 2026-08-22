@@ -1,12 +1,13 @@
 {
   lib,
+  outputs,
   pkgs,
   ...
 }: {
   imports = [
-    ../../modules/nixos/host-base
-    ../../modules/nixos/desktop
-    ../../modules/nixos/secure-boot.nix
+    outputs.nixosModules.host-base
+    outputs.nixosModules.desktop
+    outputs.nixosModules.secure-boot
     ./hardware-configuration.nix
     ./persistence.nix
     ./sops.nix

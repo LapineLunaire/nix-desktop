@@ -1,5 +1,5 @@
-{...}: {
-  imports = [../../modules/darwin];
+{outputs, ...}: {
+  imports = [outputs.darwinModules.base];
 
   nixpkgs.hostPlatform = "aarch64-darwin";
   # nix-darwin's own state version counter, unrelated to the nixpkgs release below it.

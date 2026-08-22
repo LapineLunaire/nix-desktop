@@ -1,3 +1,4 @@
+# carmilla's XDG base and user directories, on Linux only.
 {
   lib,
   pkgs,

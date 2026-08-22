@@ -1,3 +1,4 @@
+# The RODECaster Duo routing: its multichannel output, the virtual sinks feeding each AUX pair, and the FiiO K11 its main mix plays out of.
 {
   config,
   lib,

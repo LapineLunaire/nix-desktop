@@ -1,14 +1,16 @@
+# Base NixOS for full hosts: boot loader, escalation rules, zram, locale, console, and the firewall defaults, on top of the option namespace, nix settings, hardening, persisted state, packages, services, and temp dir mounts.
 {
   lib,
+  outputs,
   pkgs,
   ...
 }: {
   imports = [
-    ../../host.nix
-    ../../nix-settings.nix
+    outputs.modules.host
+    outputs.modules.nix-settings
+    outputs.nixosModules.security
     ./packages.nix
     ./persistence.nix
-    ./security.nix
     ./services.nix
     ./tmp-dirs.nix
   ];
@@ -18,15 +20,16 @@
     loader = {
       systemd-boot = {
         enable = lib.mkDefault true;
+        # Editing the kernel command line at the boot menu allows root access via init=/bin/sh.
         editor = false;
       };
       efi.canTouchEfiVariables = true;
     };
-    # zram compresses pages in RAM, so swapping is cheap and a high swappiness keeps anonymous pages compressed.
+    # High swappiness suits zram: compressed pages stay in RAM, so a swap-out costs compression time.
     kernel.sysctl."vm.swappiness" = 100;
   };
 
-  # wheel escalates with doas; persist keeps the authentication for a period after a successful prompt.
+  # wheel escalates with doas, and persist caches the authentication for a period after a successful prompt.
   security.doas = {
     enable = true;
     extraRules = [
@@ -36,13 +39,14 @@
       }
     ];
   };
-  # doas-sudo-shim installs one binary, named sudo, that calls doas. host-base/security.nix disables the real sudo.
+  # doas-sudo-shim installs one binary, named sudo, that calls doas. modules/nixos/security.nix disables the real sudo.
   environment.systemPackages = [pkgs.doas-sudo-shim];
 
   security.polkit.enable = true;
 
   zramSwap = {
     enable = true;
+    algorithm = "zstd";
     memoryPercent = 30;
     priority = 100;
   };
@@ -50,8 +54,9 @@
   time.timeZone = lib.mkDefault "UTC";
 
   i18n = {
+    defaultLocale = "en_US.UTF-8";
     extraLocaleSettings = {
-      LC_TIME = "C.UTF-8";
+      LC_TIME = "C.UTF-8"; # ISO 8601 time format
       LC_MONETARY = "nl_NL.UTF-8";
       LC_MEASUREMENT = "nl_NL.UTF-8";
       LC_PAPER = "nl_NL.UTF-8";
@@ -63,5 +68,6 @@
     earlySetup = true;
   };
 
+  networking.firewall.enable = true;
   networking.nftables.enable = true;
 }

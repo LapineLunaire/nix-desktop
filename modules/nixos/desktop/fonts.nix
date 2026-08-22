@@ -1,3 +1,4 @@
+# The font set and the fontconfig rules that pick a CJK face per language, appended after the Latin defaults so a tagged locale resolves to its own Noto face.
 {
   lib,
   pkgs,
