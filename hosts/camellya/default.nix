@@ -11,6 +11,7 @@
     ./hardware-configuration.nix
     ./persistence.nix
     ./sops.nix
+    ./displays.nix
     ./pipewire.nix
     ./samba-mounts.nix
     ./desktop-packages.nix
