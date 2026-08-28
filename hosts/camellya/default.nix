@@ -50,8 +50,10 @@
 
   # sshd is closed on the firewall and reachable only from these client subnets: LAN, WireGuard VPN, Nox's LAN, Nox's WireGuard.
   services.openssh.openFirewall = false;
+  # winbox discovery reads the MNDP broadcasts that RouterOS sends to UDP 5678, accepted from the LAN only.
   networking.firewall.extraInputRules = ''
     ip saddr { 10.28.64.0/24, 10.28.96.0/24, 10.100.0.0/24, 10.1.0.0/24 } tcp dport 22 accept
+    ip saddr 10.28.64.0/24 udp dport 5678 accept
   '';
 
   # Without a mail relay on this host, smartd reports to the journal only.
