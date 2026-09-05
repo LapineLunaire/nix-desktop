@@ -3,13 +3,13 @@
   config,
   pkgs,
   ...
-}: let
-  carmilla = config.users.users.carmilla;
-in {
+}: {
   # mount.cifs, which the mounts below need.
   environment.systemPackages = [pkgs.cifs-utils];
 
-  fileSystems =
+  fileSystems = let
+    carmilla = config.users.users.carmilla;
+  in
     builtins.mapAttrs (_: share: {
       device = "//vault.lunaire.moe/${share}";
       fsType = "cifs";

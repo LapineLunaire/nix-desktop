@@ -4,13 +4,13 @@
   osConfig,
   pkgs,
   ...
-}: let
-  wallpapers = "${osConfig.host.flakePath}/users/carmilla/wallpapers";
-in {
+}: {
   config = lib.mkIf pkgs.stdenv.hostPlatform.isLinux {
     home.packages = [pkgs.bibata-cursors];
 
-    programs.plasma = {
+    programs.plasma = let
+      wallpapers = "${osConfig.host.flakePath}/users/carmilla/wallpapers";
+    in {
       enable = true;
 
       workspace = {

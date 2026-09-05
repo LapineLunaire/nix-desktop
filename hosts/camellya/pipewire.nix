@@ -4,94 +4,7 @@
   lib,
   pkgs,
   ...
-}: let
-  serial = config.sops.placeholder."rodecaster-duo-serial";
-  multichannelOutput = "alsa_output.usb-R__DE_RODECaster_Duo_${serial}.pro-output-1";
-
-  virtualSinks = [
-    {
-      suffix = "main";
-      description = "System";
-      aux = "AUX0 AUX1";
-    }
-    {
-      suffix = "game";
-      description = "Game";
-      aux = "AUX2 AUX3";
-    }
-    {
-      suffix = "music";
-      description = "Music";
-      aux = "AUX4 AUX5";
-    }
-    {
-      suffix = "a";
-      description = "Virtual A";
-      aux = "AUX6 AUX7";
-    }
-    {
-      suffix = "b";
-      description = "Virtual B";
-      aux = "AUX8 AUX9";
-    }
-  ];
-
-  loopbackModules =
-    lib.concatMapStrings (sink: ''
-      # ${sink.description}
-      {   name = libpipewire-module-loopback
-          args = {
-              node.name = "virtual_output.usb-R__DE_RODECaster_Duo_${serial}.${sink.suffix}"
-              node.description = "RODECaster Duo ${sink.description}"
-              audio.position = [ FL FR ]
-
-              capture.props = { media.class = "Audio/Sink" }
-
-              playback.props = {
-                  target.object = "${multichannelOutput}"
-                  stream.dont-remix = true
-                  audio.position = [ ${sink.aux} ]
-              }
-          }
-      },
-
-    '')
-    virtualSinks;
-
-  deviceRenames = [
-    {
-      node = multichannelOutput;
-      description = "Multi-Channel";
-    }
-    {
-      node = "alsa_output.usb-R__DE_RODECaster_Duo_${serial}.pro-output-0";
-      description = "Chat";
-    }
-    {
-      node = "alsa_input.usb-R__DE_RODECaster_Duo_${serial}.pro-input-0";
-      description = "Chat";
-    }
-    {
-      node = "alsa_input.usb-R__DE_RODECaster_Duo_${serial}.pro-input-1";
-      description = "Main Mix";
-    }
-  ];
-
-  nodeRules =
-    lib.concatMapStrings (dev: ''
-      {
-          matches = [ { node.name = "${dev.node}" } ]
-          actions = {
-              update-props = {
-                  node.description = "RODECaster Duo ${dev.description}"
-                  node.nick = "RODECaster Duo ${dev.description}"
-              }
-          }
-      },
-
-    '')
-    deviceRenames;
-in {
+}: {
   services.pipewire.wireplumber.extraConfig."50-rodecaster"."monitor.alsa.rules" = [
     {
       matches = [
@@ -111,40 +24,129 @@ in {
   ];
 
   # RODECaster Duo virtual input/output devices, from parzival-space/rodecaster-pro-2-virtual-devices-pipewire (rodecaster-duo-1.7.3), with the serial templated in from the rodecaster-duo-serial secret.
-  sops.templates."rodecaster-duo.conf".mode = "0444";
-  sops.templates."rodecaster-duo.conf".content = ''
-    context.modules = [
-        # Audio sinks / output devices
+  sops.templates."rodecaster-duo.conf" = let
+    serial = config.sops.placeholder."rodecaster-duo-serial";
+    multichannelOutput = "alsa_output.usb-R__DE_RODECaster_Duo_${serial}.pro-output-1";
 
-    ${loopbackModules}
-        # RODECaster Input to FiiO K11
-        {
-            name = libpipewire-module-loopback
+    virtualSinks = [
+      {
+        suffix = "main";
+        description = "System";
+        aux = "AUX0 AUX1";
+      }
+      {
+        suffix = "game";
+        description = "Game";
+        aux = "AUX2 AUX3";
+      }
+      {
+        suffix = "music";
+        description = "Music";
+        aux = "AUX4 AUX5";
+      }
+      {
+        suffix = "a";
+        description = "Virtual A";
+        aux = "AUX6 AUX7";
+      }
+      {
+        suffix = "b";
+        description = "Virtual B";
+        aux = "AUX8 AUX9";
+      }
+    ];
+
+    loopbackModules =
+      lib.concatMapStrings (sink: ''
+        # ${sink.description}
+        {   name = libpipewire-module-loopback
             args = {
-                node.name = "loopback.input-to-fiio"
-                node.description = "RODECaster Main Mix to FiiO K11"
+                node.name = "virtual_output.usb-R__DE_RODECaster_Duo_${serial}.${sink.suffix}"
+                node.description = "RODECaster Duo ${sink.description}"
                 audio.position = [ FL FR ]
 
-                capture.props = {
-                    target.object = "alsa_input.usb-R__DE_RODECaster_Duo_${serial}.pro-input-1"
-                    stream.dont-remix = true
-                    audio.position = [ AUX0 AUX1 ]
-                }
+                capture.props = { media.class = "Audio/Sink" }
 
                 playback.props = {
-                    target.object = "alsa_output.usb-FIIO_FiiO_K11-01.pro-output-0"
+                    target.object = "${multichannelOutput}"
                     stream.dont-remix = true
-                    audio.position = [ AUX0 AUX1 ]
+                    audio.position = [ ${sink.aux} ]
                 }
             }
-        }
-    ]
+        },
 
-    # Assign correct names to physical devices.
-    node.rules = [
-    ${nodeRules}
-    ]
-  '';
+      '')
+      virtualSinks;
+
+    deviceRenames = [
+      {
+        node = multichannelOutput;
+        description = "Multi-Channel";
+      }
+      {
+        node = "alsa_output.usb-R__DE_RODECaster_Duo_${serial}.pro-output-0";
+        description = "Chat";
+      }
+      {
+        node = "alsa_input.usb-R__DE_RODECaster_Duo_${serial}.pro-input-0";
+        description = "Chat";
+      }
+      {
+        node = "alsa_input.usb-R__DE_RODECaster_Duo_${serial}.pro-input-1";
+        description = "Main Mix";
+      }
+    ];
+
+    nodeRules =
+      lib.concatMapStrings (dev: ''
+        {
+            matches = [ { node.name = "${dev.node}" } ]
+            actions = {
+                update-props = {
+                    node.description = "RODECaster Duo ${dev.description}"
+                    node.nick = "RODECaster Duo ${dev.description}"
+                }
+            }
+        },
+
+      '')
+      deviceRenames;
+  in {
+    mode = "0444";
+    content = ''
+      context.modules = [
+          # Audio sinks / output devices
+
+      ${loopbackModules}
+          # RODECaster Input to FiiO K11
+          {
+              name = libpipewire-module-loopback
+              args = {
+                  node.name = "loopback.input-to-fiio"
+                  node.description = "RODECaster Main Mix to FiiO K11"
+                  audio.position = [ FL FR ]
+
+                  capture.props = {
+                      target.object = "alsa_input.usb-R__DE_RODECaster_Duo_${serial}.pro-input-1"
+                      stream.dont-remix = true
+                      audio.position = [ AUX0 AUX1 ]
+                  }
+
+                  playback.props = {
+                      target.object = "alsa_output.usb-FIIO_FiiO_K11-01.pro-output-0"
+                      stream.dont-remix = true
+                      audio.position = [ AUX0 AUX1 ]
+                  }
+              }
+          }
+      ]
+
+      # Assign correct names to physical devices.
+      node.rules = [
+      ${nodeRules}
+      ]
+    '';
+  };
 
   services.pipewire.configPackages = [
     (pkgs.runCommand "rodecaster-duo-pipewire-config" {} ''
