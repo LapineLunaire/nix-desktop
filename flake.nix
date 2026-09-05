@@ -110,6 +110,7 @@
       desktop = ./modules/nixos/desktop;
       secure-boot = ./modules/nixos/secure-boot.nix;
       security = ./modules/nixos/security.nix;
+      uutils = ./modules/nixos/uutils.nix;
     };
 
     darwinModules.base = ./modules/darwin;
@@ -120,7 +121,11 @@
       pkgs = pkgsFor {inherit system;};
     in {
       default = pkgs.mkShell {
+        # uutils shadowing the GNU tools that stdenv puts on PATH, so the shell matches the system.
         packages = with pkgs; [
+          uutils-coreutils-noprefix
+          uutils-findutils
+          uutils-diffutils
           alejandra
           nixd
           sops
