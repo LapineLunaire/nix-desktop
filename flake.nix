@@ -74,14 +74,11 @@
 
     overlays = import ./overlays.nix;
 
-    pkgsFor = {
-      system,
-      extraConfig ? {},
-    }:
+    pkgsFor = {system}:
       import nixpkgs {
         inherit system;
         overlays = [overlays.additions overlays.modifications];
-        config = {allowUnfree = true;} // extraConfig;
+        config.allowUnfree = true;
       };
 
     specialArgs = {inherit inputs outputs;};
@@ -149,13 +146,7 @@
     nixosConfigurations.camellya = nixpkgs.lib.nixosSystem {
       inherit specialArgs;
       modules = [
-        {
-          nixpkgs.pkgs = pkgsFor {
-            system = "x86_64-linux";
-            # obs-studio takes cudaSupport from the instance config and adds autoAddDriverRunpath to its build.
-            extraConfig.cudaSupport = true;
-          };
-        }
+        {nixpkgs.pkgs = pkgsFor {system = "x86_64-linux";};}
         impermanence.nixosModules.impermanence
         lanzaboote.nixosModules.lanzaboote
         sops-nix.nixosModules.sops
