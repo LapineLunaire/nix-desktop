@@ -1,23 +1,56 @@
-name: Update Flake Inputs
+name: Update
 
-# Runs at 02:00, after tibia-update at 00:00, so the eval step and the commit it pushes sit on top of that day's client hash change.
+# One daily run, after the server repository's at 02:00. The tibia refresh is a job the update
+# depends on rather than an earlier cron, so ordering is a needs: edge and a slow client download
+# delays the update instead of racing it. With runner.capacity = 1 on the shared runner, this queues
+# behind a server run rather than contending with it.
 on:
   schedule:
-    - cron: "0 2 * * *"
+    - cron: "0 3 * * *"
   workflow_dispatch: {}
 
 jobs:
-  update:
-    runs-on: debian
+  tibia:
+    runs-on: nixos
     steps:
       - name: Checkout
         uses: actions/checkout@93cb6efe18208431cddfb8368fd83d5badbf9bfd # v5
 
-      - name: Install sudo
-        run: apt update && apt install -y sudo
+      # static.tibia.com answers 403 to a request that omits an Accept-Encoding header. nix-prefetch-url's
+      # libcurl sends one, so it fetches the same bytes as the --compressed fetchurl in pkgs/tibia. It
+      # always refetches, so a stale hash is caught whatever the cache holds.
+      - name: Update hash
+        id: tibia
+        run: |
+          hash=$(nix-prefetch-url https://static.tibia.com/download/tibia.x64.tar.gz)
+          sed -i "s|sha256 = \"[a-z0-9]*\";|sha256 = \"${hash}\";|" pkgs/tibia/default.nix
+          if git diff --quiet pkgs/tibia/default.nix; then
+            echo "changed=false" >> "$GITHUB_OUTPUT"
+          else
+            echo "changed=true" >> "$GITHUB_OUTPUT"
+          fi
 
-      - name: Install Nix
-        uses: cachix/install-nix-action@616559265b40713947b9c190a8ff4b507b5df49b # v31
+      - name: Build
+        if: steps.tibia.outputs.changed == 'true'
+        run: nix build .#tibia --no-link
+
+      - name: Commit and push
+        if: steps.tibia.outputs.changed == 'true'
+        uses: ./.forgejo/actions/commit-push
+        with:
+          paths: pkgs/tibia/default.nix
+          message: "tibia: update client hash"
+          ssh-signing-key: ${{ secrets.CI_SIGNING_KEY }}
+
+  update:
+    needs: tibia
+    runs-on: nixos
+    steps:
+      # ref rather than the triggering SHA, so this job sees the commit the tibia job just pushed.
+      - name: Checkout
+        uses: actions/checkout@93cb6efe18208431cddfb8368fd83d5badbf9bfd # v5
+        with:
+          ref: ${{ github.ref_name }}
 
       - name: Update flake inputs
         run: nix flake update
@@ -31,12 +64,32 @@ jobs:
             echo "changed=true" >> "$GITHUB_OUTPUT"
           fi
 
-      # Both toplevels evaluate on the Linux runner, silverwolf's included, so breakage from an updated input is caught before a host pulls the new lock.
-      - name: Eval host toplevels
+      # camellya builds; silverwolf is aarch64-darwin on an x86_64-linux runner, so it only evaluates,
+      # which still catches breakage from an updated input.
+      - name: Build
+        id: build
         if: steps.check.outputs.changed == 'true'
         run: |
-          nix eval ".#nixosConfigurations.camellya.config.system.build.toplevel.drvPath"
+          path=$(nix build --no-link --print-out-paths .#nixosConfigurations.camellya.config.system.build.toplevel)
+          echo "path=$path" >> "$GITHUB_OUTPUT"
           nix eval ".#darwinConfigurations.silverwolf.config.system.build.toplevel.drvPath"
+
+      - name: Push to the cache
+        if: steps.check.outputs.changed == 'true'
+        env:
+          ATTIC_TOKEN: ${{ secrets.ATTIC_TOKEN }}
+        run: |
+          # Skip cleanly when the secret is absent rather than failing the job and blocking the lock
+          # commit below; once it exists, a real push failure still fails the step normally.
+          if [ -z "$ATTIC_TOKEN" ]; then
+            echo "ATTIC_TOKEN not set, skipping push"
+            exit 0
+          fi
+          # Scoped to the job: HOME on this runner is persistent, and attic login writes the token
+          # there in cleartext.
+          export XDG_CONFIG_HOME="$RUNNER_TEMP/attic-config"
+          attic login lunaire https://cache.lunaire.moe/ "$ATTIC_TOKEN"
+          attic push lunaire:desktop "${{ steps.build.outputs.path }}"
 
       - name: Commit and push
         if: steps.check.outputs.changed == 'true'
