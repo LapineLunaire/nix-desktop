@@ -108,6 +108,7 @@
     nixosModules = {
       host-base = ./modules/nixos/host-base;
       desktop = ./modules/nixos/desktop;
+      binary-cache = ./modules/nixos/binary-cache.nix;
       secure-boot = ./modules/nixos/secure-boot.nix;
       security = ./modules/nixos/security.nix;
       uutils = ./modules/nixos/uutils.nix;

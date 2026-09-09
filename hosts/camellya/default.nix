@@ -1,11 +1,12 @@
 {
-  lib,
+  config,
   outputs,
   pkgs,
   ...
 }: {
   imports = [
     outputs.nixosModules.host-base
+    outputs.nixosModules.binary-cache
     outputs.nixosModules.desktop
     outputs.nixosModules.secure-boot
     ./hardware-configuration.nix
@@ -30,18 +31,39 @@
 
   host.flakePath = "/persist/nix-config";
 
+  # Zen 5. gcc 15.3, the compiler that builds this kernel, resolves -march=native to znver5 on this CPU.
+  host.cpu.march = "znver5";
+
+  # The cache the desktop workflow fills, served by the attic guest on sparkle. The key is read off `attic cache info desktop`.
+  host.binaryCache = {
+    caches = [
+      {
+        url = "https://cache.lunaire.moe/desktop";
+        publicKey = "desktop:QBHQfUrDyPKWwQolz4KiaJ1NlC+dGZLP4m29qgvkYs4=";
+      }
+    ];
+    tokenSecret = "attic-pull-token";
+  };
+
   tmpDirs.size = "16G";
 
-  # A kernel rebuilt with X86_NATIVE_CPU, which detects the CPU it is compiled on: camellya must be built on itself.
-  boot.kernelPackages = pkgs.linuxPackages_7_2.extend (
-    _: super: {
-      kernel = super.kernel.override {
-        structuredExtraConfig = {
-          X86_NATIVE_CPU = lib.kernel.yes;
+  # Compiled for the microarchitecture host.cpu.march names rather than for whatever machine ran the build, so the derivation records the target and the result substitutes. The nvidia module builds against this kernel and becomes cacheable with it.
+  boot.kernelPackages = let
+    inherit (config.host.cpu) march;
+  in
+    pkgs.linuxPackages_7_2.extend (
+      _: super: {
+        kernel = super.kernel.override {
+          # Four single-token flags: stdenv word-splits makeFlags, so none may contain a space. KCFLAGS alone is not enough, because arch/x86/Makefile emits -mtune=generic and the top-level Makefile appends KCFLAGS after it; CFLAGS_KERNEL and CFLAGS_MODULE land later still on the compile line, and KRUSTFLAGS covers the Rust objects KCFLAGS never reaches.
+          extraMakeFlags = [
+            "KCFLAGS=-march=${march}"
+            "CFLAGS_KERNEL=-mtune=${march}"
+            "CFLAGS_MODULE=-mtune=${march}"
+            "KRUSTFLAGS=-Ctarget-cpu=${march}"
+          ];
         };
-      };
-    }
-  );
+      }
+    );
 
   # With amd_pstate active, powersave lets the firmware (CPPC) handle frequency scaling.
   boot.kernelParams = ["amd_pstate=active"];

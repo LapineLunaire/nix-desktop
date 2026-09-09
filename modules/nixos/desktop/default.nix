@@ -18,16 +18,8 @@
   # ntsync provides the kernel-side NT synchronisation primitives Wine and Proton use for Win32 sync objects.
   boot.kernelModules = ["ntsync"];
 
-  nix = {
-    # SCHED_IDLE on the daemon is inherited by its build processes, so a build only gets CPU time no other task wants.
-    daemonCPUSchedPolicy = "idle";
-
-    # The aagl project's own binary cache, so its game launchers come prebuilt.
-    settings = {
-      extra-substituters = ["https://ezkea.cachix.org"];
-      extra-trusted-public-keys = ["ezkea.cachix.org-1:ioBmUbJTZIKsHmWWXPe1FSFbeVe+afhfgqgTSNd34eI="];
-    };
-  };
+  # SCHED_IDLE on the daemon is inherited by its build processes, so a build only gets CPU time no other task wants.
+  nix.daemonCPUSchedPolicy = "idle";
 
   # The pipewire module takes realtime scheduling from security.rtkit.enable and leaves the setting to the configuration.
   security.rtkit.enable = true;
