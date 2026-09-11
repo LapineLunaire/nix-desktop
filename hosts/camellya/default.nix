@@ -38,7 +38,7 @@
   host.binaryCache = {
     caches = [
       {
-        url = "https://cache.lunaire.moe/desktop";
+        url = "https://cache.lunaire.moe/desktop?priority=10";
         publicKey = "desktop:QBHQfUrDyPKWwQolz4KiaJ1NlC+dGZLP4m29qgvkYs4=";
       }
     ];
