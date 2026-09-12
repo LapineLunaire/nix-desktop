@@ -29,6 +29,15 @@ overlays.nix    additions (pkgs/) and modifications (overridden nixpkgs packages
 
 Internal modules use relative imports. The flake still exports `nixosModules` and `darwinModules` for external consumers; platform-neutral modules live directly under `modules/`.
 
+## Style
+
+- Format Nix files with `alejandra .`; the pre-commit hook checks the staged contents.
+- Keep `let` bindings in the smallest logical block shared by their consumers. Use an attribute-local `let` for one setting, or an inline module in `imports` when a binding belongs to a few related settings. Module-wide bindings are for values needed across the module.
+- Put `imports` before settings. Keep related settings together, using dotted paths for individual options and attribute sets for coherent groups.
+- Use `config = lib.mkIf ...` for whole-module conditions, and option-level `lib.mkIf` for individual settings. Use `lib.optionalAttrs` when platform-specific attributes must be absent on the other platform.
+- Use explicit module arguments and qualified library functions; keep `with pkgs` scoped to package lists. Use camelCase for local helpers, preserving upstream package and option names.
+- Explain intent and constraints in comments. Commit subjects use `scope: description`, matching the existing history.
+
 ## Usage
 
 ```sh

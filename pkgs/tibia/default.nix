@@ -57,22 +57,6 @@
       runHook postInstall
     '';
   };
-
-  desktopItem = makeDesktopItem {
-    name = "tibia";
-    desktopName = "Tibia";
-    comment = "Tibia MMORPG client";
-    exec = "tibia";
-    icon = "tibia";
-    categories = ["Game"];
-  };
-
-  # The client's qt.conf sets Prefix=., so the working directory has to be the payload for its plugins and bundled Qt libs to resolve.
-  startScript = writeShellScript "tibia-start" ''
-    export LD_LIBRARY_PATH="${tibia-unwrapped}/opt/tibia/lib''${LD_LIBRARY_PATH:+:$LD_LIBRARY_PATH}"
-    cd ${tibia-unwrapped}/opt/tibia
-    exec ./Tibia "$@"
-  '';
 in
   buildFHSEnv {
     name = "tibia";
@@ -111,9 +95,23 @@ in
       unset WAYLAND_DISPLAY
     '';
 
-    runScript = startScript;
+    # The client's qt.conf sets Prefix=., so the working directory has to be the payload for its plugins and bundled Qt libs to resolve.
+    runScript = writeShellScript "tibia-start" ''
+      export LD_LIBRARY_PATH="${tibia-unwrapped}/opt/tibia/lib''${LD_LIBRARY_PATH:+:$LD_LIBRARY_PATH}"
+      cd ${tibia-unwrapped}/opt/tibia
+      exec ./Tibia "$@"
+    '';
 
-    extraInstallCommands = ''
+    extraInstallCommands = let
+      desktopItem = makeDesktopItem {
+        name = "tibia";
+        desktopName = "Tibia";
+        comment = "Tibia MMORPG client";
+        exec = "tibia";
+        icon = "tibia";
+        categories = ["Game"];
+      };
+    in ''
       install -Dm444 ${desktopItem}/share/applications/*.desktop -t $out/share/applications
       ${icoutils}/bin/icotool -x --width=256 ${tibia-unwrapped}/opt/tibia/tibia.ico -o $TMPDIR
       install -Dm444 $TMPDIR/tibia_*.png $out/share/icons/hicolor/256x256/apps/tibia.png
