@@ -35,7 +35,7 @@
 }: let
   tibia-unwrapped = stdenvNoCC.mkDerivation {
     pname = "tibia-unwrapped";
-    # The download URL is unversioned; .forgejo/workflows/tibia-update.yml refreshes the hash below nightly.
+    # The download URL is unversioned; the tibia job in .forgejo/workflows/flake-update.yml refreshes this hash nightly.
     version = "unstable";
 
     # static.tibia.com sits behind Cloudflare, which answers 403 to a request that omits an Accept-Encoding header. --compressed sends one and decodes the response, matching what nix-prefetch-url does, so the hash stays the one that tool prints.

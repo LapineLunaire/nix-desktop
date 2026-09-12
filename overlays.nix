@@ -13,13 +13,17 @@
       '';
     };
 
-    winbox4 = prev.winbox4.overrideAttrs (old: {
-      postInstall =
-        (old.postInstall or "")
-        + ''
-          wrapProgram $out/bin/WinBox --set QT_QPA_PLATFORM xcb
-        '';
-    });
+    winbox4 =
+      if prev.stdenv.hostPlatform.isLinux
+      then
+        prev.winbox4.overrideAttrs (old: {
+          postInstall =
+            (old.postInstall or "")
+            + ''
+              wrapProgram $out/bin/WinBox --set QT_QPA_PLATFORM xcb
+            '';
+        })
+      else prev.winbox4;
 
     discord = prev.discord.override {
       commandLineArgs = "--force-device-scale-factor=1";

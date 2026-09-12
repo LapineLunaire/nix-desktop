@@ -155,7 +155,7 @@
     '')
   ];
 
-  # The pro-audio profile passes the FiiO K11's native 32-bit format through for bit-perfect output.
+  # Select pro-audio so the loopback can address the K11's AUX0/AUX1 channels.
   services.pipewire.wireplumber.extraConfig."51-fiio-k11"."monitor.alsa.rules" = [
     {
       matches = [{"device.name" = "alsa_card.usb-FIIO_FiiO_K11-01";}];

@@ -1,5 +1,5 @@
 # carmilla: the interactive account on every system, its OS side and its home-manager wiring. On NixOS the login password comes from the carmilla-password-hash sops secret, which each host declares.
-# home.stateVersion is declared per host alongside system.stateVersion, since it records the nixpkgs release that host was installed from.
+# home.stateVersion is declared per host and selects Home Manager's compatibility defaults.
 {
   config,
   inputs,

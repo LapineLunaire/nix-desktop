@@ -49,6 +49,11 @@
     )
     ++ lib.optionals pkgs.stdenv.hostPlatform.isLinux (
       with pkgs; [
+        # The user profile precedes the system profile on PATH, so user commands prefer uutils.
+        # GNU utilities remain available to system packages and supply commands uutils omits.
+        uutils-coreutils-noprefix
+        uutils-findutils
+        uutils-diffutils
         davinci-resolve
         dino
         discord

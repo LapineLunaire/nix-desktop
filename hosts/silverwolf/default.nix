@@ -22,7 +22,7 @@
     onActivation = {
       autoUpdate = true;
       upgrade = true;
-      # Casks absent from this list are removed on activation, which keeps the install declarative.
+      # Remove formulae and casks absent from the generated Brewfile on activation.
       cleanup = "uninstall";
     };
     # Homebrew updates only on nix-darwin activation, not during regular brew commands.

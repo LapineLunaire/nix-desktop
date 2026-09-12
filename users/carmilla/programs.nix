@@ -209,7 +209,7 @@
 
   programs.ghostty = {
     enable = true;
-    # nixpkgs builds ghostty from source on Linux only; ghostty-bin unpacks the official macOS release, which targets.darwin.copyApps copies into ~/Applications.
+    # nixpkgs builds ghostty from source on Linux only; Home Manager copies ghostty-bin's macOS app into ~/Applications/Home Manager Apps.
     package =
       if pkgs.stdenv.hostPlatform.isDarwin
       then pkgs.ghostty-bin
@@ -219,7 +219,7 @@
       background-opacity = 0.95;
       window-padding-x = 8;
       window-padding-y = 8;
-      # Ghostty's macOS updater cannot replace an app bundle that lives in the read-only store.
+      # Disable Ghostty's macOS updater so updates follow the Nix configuration.
       auto-update = "off";
     };
   };

@@ -21,7 +21,7 @@
         };
         # plasma-manager interpolates this into a plasma-changeicons command unquoted, so it takes the icon directory name as a single word.
         iconTheme = "breeze-dark";
-        # host.flakePath points at the repository on disk, so Plasma reads these images in place and the store holds no copy of them.
+        # Plasma reads these images from the checkout; the tracked files also exist in the flake's store snapshot.
         wallpaper = "${wallpapers}/__camellya_wuthering_waves_drawn_by_lemontea_ekvr5838__1ba4f9536e85b04a5d04733db7eee4e9.png";
       };
 

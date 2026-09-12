@@ -51,19 +51,22 @@
   boot.kernelPackages = let
     inherit (config.host.cpu) march;
   in
-    pkgs.linuxPackages_7_2.extend (
-      _: super: {
-        kernel = super.kernel.override {
-          # Four single-token flags: stdenv word-splits makeFlags, so none may contain a space. KCFLAGS alone is not enough, because arch/x86/Makefile emits -mtune=generic and the top-level Makefile appends KCFLAGS after it; CFLAGS_KERNEL and CFLAGS_MODULE land later still on the compile line, and KRUSTFLAGS covers the Rust objects KCFLAGS never reaches.
-          extraMakeFlags = [
-            "KCFLAGS=-march=${march}"
-            "CFLAGS_KERNEL=-mtune=${march}"
-            "CFLAGS_MODULE=-mtune=${march}"
-            "KRUSTFLAGS=-Ctarget-cpu=${march}"
-          ];
-        };
-      }
-    );
+    if march == null
+    then pkgs.linuxPackages_7_2
+    else
+      pkgs.linuxPackages_7_2.extend (
+        _: super: {
+          kernel = super.kernel.override {
+            # Four single-token flags: stdenv word-splits makeFlags, so none may contain a space. KCFLAGS alone is not enough, because arch/x86/Makefile emits -mtune=generic and the top-level Makefile appends KCFLAGS after it; CFLAGS_KERNEL and CFLAGS_MODULE land later still on the compile line, and KRUSTFLAGS covers the Rust objects KCFLAGS never reaches.
+            extraMakeFlags = [
+              "KCFLAGS=-march=${march}"
+              "CFLAGS_KERNEL=-mtune=${march}"
+              "CFLAGS_MODULE=-mtune=${march}"
+              "KRUSTFLAGS=-Ctarget-cpu=${march}"
+            ];
+          };
+        }
+      );
 
   # With amd_pstate active, powersave lets the firmware (CPPC) handle frequency scaling.
   boot.kernelParams = ["amd_pstate=active"];
@@ -78,7 +81,7 @@
     ip saddr 10.28.64.0/24 udp dport 5678 accept
   '';
 
-  # Without a mail relay on this host, smartd reports to the journal only.
+  # smartd logs to the journal and sends wall notifications; no mail relay is configured.
   services.smartd.enable = true;
   # smartd references smartmontools but does not add smartctl to PATH.
   environment.systemPackages = [pkgs.smartmontools];

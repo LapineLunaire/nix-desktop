@@ -1,12 +1,5 @@
 # CIFS mounts of the shares vault.lunaire.moe serves. Kept out of hardware-configuration.nix so regenerating that file does not drop them.
-{
-  config,
-  pkgs,
-  ...
-}: {
-  # mount.cifs, which the mounts below need.
-  environment.systemPackages = [pkgs.cifs-utils];
-
+{config, ...}: {
   fileSystems = let
     carmilla = config.users.users.carmilla;
   in
@@ -23,9 +16,7 @@
         "noexec"
         "_netdev"
         "x-systemd.automount"
-        "noauto"
         "x-systemd.idle-timeout=60"
-        "x-systemd.device-timeout=5s"
         "x-systemd.mount-timeout=5s"
       ];
     }) {

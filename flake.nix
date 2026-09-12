@@ -108,7 +108,6 @@
       binary-cache = ./modules/nixos/binary-cache.nix;
       secure-boot = ./modules/nixos/secure-boot.nix;
       security = ./modules/nixos/security.nix;
-      uutils = ./modules/nixos/uutils.nix;
     };
 
     darwinModules.base = ./modules/darwin;
@@ -119,7 +118,7 @@
       pkgs = pkgsFor {inherit system;};
     in {
       default = pkgs.mkShell {
-        # uutils shadowing the GNU tools that stdenv puts on PATH, so the shell matches the system.
+        # Prefer uutils on the development shell's PATH; package dependencies keep their GNU tools.
         packages = with pkgs; [
           uutils-coreutils-noprefix
           uutils-findutils
