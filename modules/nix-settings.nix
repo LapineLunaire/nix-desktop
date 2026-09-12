@@ -6,6 +6,8 @@
         "nix-command"
         "flakes"
       ];
+      # nix-darwin defaults this to false; isolate builds on both platforms.
+      sandbox = true;
       # Disable the global flake registry. The system nixpkgs pin and user registry entries still apply.
       flake-registry = "";
       # Replaces store files with identical contents by hard links.

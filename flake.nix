@@ -60,7 +60,6 @@
   };
 
   outputs = {
-    self,
     nixpkgs,
     home-manager,
     nixvim,
@@ -70,8 +69,6 @@
     sops-nix,
     ...
   } @ inputs: let
-    inherit (self) outputs;
-
     overlays = import ./overlays.nix;
 
     pkgsFor = {system}:
@@ -81,7 +78,7 @@
         config.allowUnfree = true;
       };
 
-    specialArgs = {inherit inputs outputs;};
+    specialArgs = {inherit inputs;};
 
     homeManagerSettings = {
       home-manager = {
@@ -95,13 +92,7 @@
     systems = ["x86_64-linux" "aarch64-darwin"];
     forEachSystem = nixpkgs.lib.genAttrs systems;
   in {
-    # Platform-neutral modules, read by both the NixOS and the darwin base.
-    modules = {
-      host = ./modules/host.nix;
-      nix-settings = ./modules/nix-settings.nix;
-    };
-
-    # Shared modules addressable as outputs.nixosModules.<name> from any nesting depth.
+    # Public NixOS modules; internal consumers use relative imports.
     nixosModules = {
       host-base = ./modules/nixos/host-base;
       desktop = ./modules/nixos/desktop;

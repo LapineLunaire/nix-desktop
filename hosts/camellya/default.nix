@@ -1,14 +1,13 @@
 {
   config,
-  outputs,
   pkgs,
   ...
 }: {
   imports = [
-    outputs.nixosModules.host-base
-    outputs.nixosModules.binary-cache
-    outputs.nixosModules.desktop
-    outputs.nixosModules.secure-boot
+    ../../modules/nixos/host-base
+    ../../modules/nixos/binary-cache.nix
+    ../../modules/nixos/desktop
+    ../../modules/nixos/secure-boot.nix
     ./hardware-configuration.nix
     ./persistence.nix
     ./sops.nix

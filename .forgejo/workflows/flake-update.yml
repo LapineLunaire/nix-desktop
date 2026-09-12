@@ -11,10 +11,13 @@ on:
 
 jobs:
   tibia:
+    if: github.ref == format('refs/heads/{0}', github.event.repository.default_branch)
     runs-on: nixos
     steps:
       - name: Checkout
         uses: actions/checkout@93cb6efe18208431cddfb8368fd83d5badbf9bfd # v5
+        with:
+          persist-credentials: false
 
       # static.tibia.com answers 403 to a request that omits an Accept-Encoding header. nix-prefetch-url's
       # libcurl sends one, so it fetches the same bytes as the --compressed fetchurl in pkgs/tibia. It
@@ -41,6 +44,7 @@ jobs:
           paths: pkgs/tibia/default.nix
           message: "tibia: update client hash"
           ssh-signing-key: ${{ secrets.CI_SIGNING_KEY }}
+          push-token: ${{ github.token }}
 
   update:
     needs: tibia
@@ -51,6 +55,7 @@ jobs:
         uses: actions/checkout@93cb6efe18208431cddfb8368fd83d5badbf9bfd # v5
         with:
           ref: ${{ github.ref_name }}
+          persist-credentials: false
 
       - name: Update flake inputs
         run: nix flake update
@@ -78,6 +83,7 @@ jobs:
         if: steps.check.outputs.changed == 'true'
         env:
           ATTIC_TOKEN: ${{ secrets.ATTIC_TOKEN }}
+          STORE_PATH: ${{ steps.build.outputs.path }}
         run: |
           # Skip cleanly when the secret is absent rather than failing the job and blocking the lock
           # commit below; once it exists, a real push failure still fails the step normally.
@@ -85,11 +91,14 @@ jobs:
             echo "ATTIC_TOKEN not set, skipping push"
             exit 0
           fi
-          # Scoped to the job: HOME on this runner is persistent, and attic login writes the token
-          # there in cleartext.
-          export XDG_CONFIG_HOME="$RUNNER_TEMP/attic-config"
+          # Attic stores its token in cleartext. Restrict access and remove it on success or failure.
+          umask 077
+          export XDG_CONFIG_HOME
+          XDG_CONFIG_HOME=$(mktemp -d "$RUNNER_TEMP/attic-config.XXXXXX")
+          trap 'rm -rf -- "$XDG_CONFIG_HOME"' EXIT
           attic login lunaire https://cache.lunaire.moe/ "$ATTIC_TOKEN"
-          attic push lunaire:desktop "${{ steps.build.outputs.path }}"
+          unset ATTIC_TOKEN
+          attic push lunaire:desktop "$STORE_PATH"
 
       - name: Commit and push
         if: steps.check.outputs.changed == 'true'
@@ -98,3 +107,4 @@ jobs:
           paths: flake.lock
           message: "flake: update inputs"
           ssh-signing-key: ${{ secrets.CI_SIGNING_KEY }}
+          push-token: ${{ github.token }}

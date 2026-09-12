@@ -1,14 +1,13 @@
 # Base NixOS for full hosts: boot loader, escalation rules, zram, locale, console, and the firewall defaults, on top of the option namespace, nix settings, hardening, persisted state, packages, services, and temp dir mounts.
 {
   lib,
-  outputs,
   pkgs,
   ...
 }: {
   imports = [
-    outputs.modules.host
-    outputs.modules.nix-settings
-    outputs.nixosModules.security
+    ../../host.nix
+    ../../nix-settings.nix
+    ../security.nix
     ./packages.nix
     ./persistence.nix
     ./services.nix

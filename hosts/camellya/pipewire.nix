@@ -2,7 +2,6 @@
 {
   config,
   lib,
-  pkgs,
   ...
 }: {
   services.pipewire.wireplumber.extraConfig."50-rodecaster"."monitor.alsa.rules" = [
@@ -112,7 +111,9 @@
       '')
       deviceRenames;
   in {
-    mode = "0444";
+    # Only the user running this PipeWire graph needs the decrypted device identifier.
+    owner = "carmilla";
+    mode = "0400";
     content = ''
       context.modules = [
           # Audio sinks / output devices
@@ -148,12 +149,15 @@
     '';
   };
 
-  services.pipewire.configPackages = [
-    (pkgs.runCommand "rodecaster-duo-pipewire-config" {} ''
-      mkdir -p $out/share/pipewire/pipewire.conf.d
-      ln -s ${config.sops.templates."rodecaster-duo.conf".path} $out/share/pipewire/pipewire.conf.d/51-rodecaster-duo.conf
-    '')
-  ];
+  # Install this private graph only for its owner, rather than for every PipeWire user.
+  home-manager.users.carmilla = {
+    config,
+    osConfig,
+    ...
+  }: {
+    xdg.configFile."pipewire/pipewire.conf.d/51-rodecaster-duo.conf".source =
+      config.lib.file.mkOutOfStoreSymlink osConfig.sops.templates."rodecaster-duo.conf".path;
+  };
 
   # Select pro-audio so the loopback can address the K11's AUX0/AUX1 channels.
   services.pipewire.wireplumber.extraConfig."51-fiio-k11"."monitor.alsa.rules" = [

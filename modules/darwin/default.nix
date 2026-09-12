@@ -2,13 +2,12 @@
 {
   config,
   lib,
-  outputs,
   pkgs,
   ...
 }: {
   imports = [
-    outputs.modules.host
-    outputs.modules.nix-settings
+    ../host.nix
+    ../nix-settings.nix
   ];
 
   programs.zsh.enable = true;
@@ -63,6 +62,11 @@
 
     loginwindow.GuestEnabled = false;
 
+    screensaver = {
+      askForPassword = true;
+      askForPasswordDelay = 0;
+    };
+
     CustomUserPreferences = {
       NSGlobalDomain.AppleActionOnDoubleClick = "Minimize";
       "com.apple.AdLib".allowApplePersonalizedAdvertising = false;
@@ -113,7 +117,8 @@
   networking.applicationFirewall = {
     enable = true;
     allowSigned = true;
-    allowSignedApp = true;
+    # Third-party signatures alone should not grant inbound network access.
+    allowSignedApp = false;
   };
 
   system.keyboard = {

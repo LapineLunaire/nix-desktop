@@ -17,8 +17,9 @@
         type = lib.types.listOf (lib.types.submodule {
           options = {
             url = lib.mkOption {
-              type = lib.types.str;
-              description = "Substituter URL of the cache, with no trailing slash.";
+              # The netrc renderer supports HTTPS DNS hosts, without userinfo or ports.
+              type = lib.types.strMatching "https://[A-Za-z0-9][A-Za-z0-9.-]*(/[A-Za-z0-9._~/?=&%+-]*)?";
+              description = "HTTPS substituter URL with a DNS hostname and optional path/query; no userinfo or port.";
             };
 
             publicKey = lib.mkOption {

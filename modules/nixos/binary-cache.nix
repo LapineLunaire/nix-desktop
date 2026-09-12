@@ -17,17 +17,22 @@ in
       }
     ];
 
-    sops.secrets.${cfg.tokenSecret} = {};
-
-    sops.templates."nix-netrc".content =
-      lib.concatMapStrings (machine: ''
-        machine ${machine} password ${config.sops.placeholder.${cfg.tokenSecret}}
-      '')
-      machines;
+    # Keep a missing token on the assertion path, rather than indexing a placeholder with null.
+    sops = lib.mkIf (cfg.tokenSecret != null) {
+      secrets.${cfg.tokenSecret} = {};
+      templates."nix-netrc" = {
+        mode = "0400";
+        content =
+          lib.concatMapStrings (machine: ''
+            machine ${machine} password ${config.sops.placeholder.${cfg.tokenSecret}}
+          '')
+          machines;
+      };
+    };
 
     nix.settings = {
       extra-substituters = map (cache: cache.url) cfg.caches;
       extra-trusted-public-keys = map (cache: cache.publicKey) cfg.caches;
-      netrc-file = config.sops.templates."nix-netrc".path;
+      netrc-file = lib.mkIf (cfg.tokenSecret != null) config.sops.templates."nix-netrc".path;
     };
   }

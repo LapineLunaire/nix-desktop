@@ -4,35 +4,31 @@
   lib,
   pkgs,
   ...
-}: {
+}: let
+  # programs.codex names the plugin after the derivation.
+  superpowers = pkgs.fetchFromGitHub {
+    name = "superpowers";
+    owner = "obra";
+    repo = "superpowers";
+    rev = "b36e0829c6d0140e93cfef2ca599b1b07d4a7797";
+    hash = "sha256-EsGNO0dULWf5Bx6bGrCv2kI2Z8aKH0kRvGiuN23wChQ=";
+  };
+in {
   home.sessionVariables = {
     PAGER = "nvimpager";
     MANPAGER = "nvimpager";
   };
 
-  imports = [
-    (let
-      # programs.codex names the plugin after the derivation.
-      superpowers = pkgs.fetchFromGitHub {
-        name = "superpowers";
-        owner = "obra";
-        repo = "superpowers";
-        rev = "b36e0829c6d0140e93cfef2ca599b1b07d4a7797";
-        hash = "sha256-EsGNO0dULWf5Bx6bGrCv2kI2Z8aKH0kRvGiuN23wChQ=";
-      };
-    in {
-      programs.claude-code = {
-        enable = true;
-        settings.includeCoAuthoredBy = false;
-        plugins.superpowers = superpowers;
-      };
+  programs.claude-code = {
+    enable = true;
+    settings.includeCoAuthoredBy = false;
+    plugins.superpowers = superpowers;
+  };
 
-      programs.codex = {
-        enable = true;
-        plugins = [superpowers];
-      };
-    })
-  ];
+  programs.codex = {
+    enable = true;
+    plugins = [superpowers];
+  };
 
   programs.direnv = {
     enable = true;

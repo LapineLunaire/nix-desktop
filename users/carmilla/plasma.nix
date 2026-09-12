@@ -25,7 +25,14 @@
         wallpaper = "${wallpapers}/__camellya_wuthering_waves_drawn_by_lemontea_ekvr5838__1ba4f9536e85b04a5d04733db7eee4e9.png";
       };
 
-      kscreenlocker.appearance.wallpaper = "${wallpapers}/__camellya_wuthering_waves_drawn_by_bantish__231537f8c01272b8cb8f88e7a518a7a8.jpg";
+      kscreenlocker = {
+        autoLock = true;
+        timeout = 5;
+        lockOnResume = true;
+        passwordRequired = true;
+        passwordRequiredDelay = 0;
+        appearance.wallpaper = "${wallpapers}/__camellya_wuthering_waves_drawn_by_bantish__231537f8c01272b8cb8f88e7a518a7a8.jpg";
+      };
 
       input.keyboard.layouts = [
         {

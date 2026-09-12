@@ -27,7 +27,7 @@ pkgs/           The tibia client, exposed through the additions overlay
 overlays.nix    additions (pkgs/) and modifications (overridden nixpkgs packages)
 ```
 
-Shared modules are reached as `outputs.nixosModules.<name>`, the darwin base as `outputs.darwinModules.base`, and the two platform-neutral ones as `outputs.modules.<name>`, which works from any nesting depth.
+Internal modules use relative imports. The flake still exports `nixosModules` and `darwinModules` for external consumers; platform-neutral modules live directly under `modules/`.
 
 ## Usage
 
@@ -180,13 +180,15 @@ doas sbctl verify
 doas sbctl enroll-keys --microsoft
 ```
 
-If restored signing keys are already enrolled, skip enrollment. Enable Secure Boot enforcement in firmware if needed and reboot. Confirm `bootctl status` reports Secure Boot enabled in user mode. Only then bind TPM2 unlock to PCR 7:
+If restored signing keys are already enrolled, skip enrollment. Enable Secure Boot enforcement in firmware if needed and reboot. Confirm `bootctl status` reports Secure Boot enabled in user mode. Only then enroll TPM2 unlock with PCR 7 and a PIN. PCR 7 measures Secure Boot policy, not the identity of this specific OS; with Microsoft certificates enrolled, it is not sufficient by itself to restrict unattended unlocking to this installation. A PIN adds a user-held factor. See the [systemd enrollment reference](https://www.freedesktop.org/software/systemd/man/latest/systemd-cryptenroll.html).
+
+First verify that your recovery passphrase works with `doas cryptsetup open --test-passphrase /dev/nvme0n1p2`. Then replace any old TPM enrollment:
 
 ```sh
-doas systemd-cryptenroll --tpm2-device=auto --tpm2-pcrs=7 /dev/nvme0n1p2
+doas systemd-cryptenroll --tpm2-device=auto --tpm2-pcrs=7 --tpm2-with-pin=yes --wipe-slot=tpm2 /dev/nvme0n1p2
 ```
 
-Reboot to verify automatic unlocking. Keep the passphrase keyslot for recovery. Back up the SSH host key and `/var/lib/sbctl` securely for future reinstalls.
+The combined command adds the new token before removing older TPM tokens; password slots remain intact. Reboot and verify that TPM unlock requests the PIN. A Nix rebuild does not change existing LUKS tokens: this enrollment is a separate administrative step. Keep the passphrase keyslot for recovery. Back up the SSH host key and `/var/lib/sbctl` securely for future reinstalls.
 
 ## Bootstrapping silverwolf
 
