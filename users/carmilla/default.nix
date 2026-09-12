@@ -1,5 +1,3 @@
-# carmilla: the interactive account on every system, its OS side and its home-manager wiring. On NixOS the login password comes from the carmilla-password-hash sops secret, which each host declares.
-# home.stateVersion is declared per host and selects Home Manager's compatibility defaults.
 {
   config,
   inputs,
@@ -45,7 +43,7 @@
 
     programs.home-manager.enable = true;
 
-    # Activate new and changed systemd user services on switch, without a logout and login cycle.
+    # Apply user-service changes on rebuild.
     systemd.user.startServices = lib.mkIf pkgs.stdenv.hostPlatform.isLinux "sd-switch";
   };
 }

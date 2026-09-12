@@ -1,7 +1,6 @@
-# camellya's monitor layout, written to KWin's output config for both the login manager's greeter and carmilla's session so the two arrangements match.
 {pkgs, ...}: let
   kwinOutputConfig = let
-    # Fields both panels share: 4K at 160Hz, 1.25x scale, HDR with a wide gamut.
+    # Both panels: 4K, 160 Hz, 1.25x scale, HDR.
     panel = {
       abmLevel = 0;
       allowDdcCi = true;
@@ -23,7 +22,7 @@
       overscan = 0;
       rgbRange = "Automatic";
       scale = 1.25;
-      # SDR white lands at the same nit level on both panels, so a window looks unchanged when it moves between them.
+      # Use the same SDR white level on both panels.
       sdrBrightness = 486;
       sdrGamutWideness = 1;
       sharpness = 0;
@@ -31,7 +30,7 @@
       wideColorGamut = true;
     };
 
-    # Landscape, and the output the greeter and the panels belong on.
+    # Primary landscape panel.
     dp3 =
       panel
       // {
@@ -43,7 +42,7 @@
         transform = "Normal";
       };
 
-    # Turned a quarter clockwise, giving 1728x3072 of logical space.
+    # Portrait panel: 1728x3072 logical pixels.
     dp2 =
       panel
       // {
@@ -54,7 +53,7 @@
         transform = "Rotated90";
       };
 
-    # Positions are in logical pixels and index into the outputs list. Priority 1 is the primary output.
+    # Positions use logical pixels; outputIndex refers to the list below.
     setups = [
       {
         lidClosed = false;
@@ -84,7 +83,7 @@
             priority = 2;
             replicationSource = "";
           }
-          # Dropped 550px so the two panels line up at eye level rather than at their top edges.
+          # Align the panels at eye level.
           {
             enabled = true;
             outputIndex = 0;
@@ -125,7 +124,7 @@
       }
     ]);
 in {
-  # The greeter runs kwin_wayland as the plasmalogin user, which reads this file out of that user's home.
+  # Give the greeter the same layout as the user session.
   systemd.tmpfiles.settings."10-plasma-login-displays" = {
     "/var/lib/plasmalogin/.config".d = {
       mode = "0750";
@@ -135,7 +134,7 @@ in {
     "/var/lib/plasmalogin/.config/kwinoutputconfig.json"."L+".argument = "${kwinOutputConfig}";
   };
 
-  # A writable copy, so the display KCM still saves; each rebuild resets it to what this file declares.
+  # Keep this writable for System Settings. A rebuild restores the declared layout.
   home-manager.users.carmilla = {lib, ...}: {
     home.activation.kwinOutputConfig = lib.hm.dag.entryAfter ["writeBoundary"] ''
       run install -Dm644 ${kwinOutputConfig} "$HOME/.config/kwinoutputconfig.json"

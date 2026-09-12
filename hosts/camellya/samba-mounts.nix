@@ -1,4 +1,3 @@
-# CIFS mounts of the shares vault.lunaire.moe serves. Kept out of hardware-configuration.nix so regenerating that file does not drop them.
 {config, ...}: {
   fileSystems = let
     carmilla = config.users.users.carmilla;

@@ -1,4 +1,3 @@
-# Base nix-darwin for Mac hosts: the shell, the system-wide tooling, and the nix daemon settings, on top of the platform-neutral option namespace and nix settings.
 {
   config,
   lib,
@@ -12,13 +11,12 @@
 
   programs.zsh.enable = true;
 
-  # nix-darwin has no programs.nh module, so the package is installed here and NH_FLAKE exported the way the NixOS one does.
+  # nix-darwin needs nh and its flake path configured directly.
   environment = {
     systemPackages = [
       pkgs.nh
-      # terminfo so SSH sessions from a Ghostty terminal render correctly. nixpkgs' ghostty is Linux-only; ghostty-bin carries the darwin build.
       pkgs.ghostty-bin.terminfo
-      # System-wide neovim so root shells have an editor. nix-darwin has no programs.neovim module, so wrapNeovim adds the vi and vim aliases the NixOS one would.
+      # Provide vi/vim aliases for root shells too.
       (pkgs.wrapNeovim pkgs.neovim-unwrapped {
         viAlias = true;
         vimAlias = true;
@@ -42,7 +40,7 @@
   system.defaults = {
     NSGlobalDomain = {
       AppleInterfaceStyle = "Dark";
-      # Disable the press-and-hold accent menu so key repeat works in all apps.
+      # Prefer key repeat to the accent menu.
       ApplePressAndHoldEnabled = false;
       KeyRepeat = 2;
       InitialKeyRepeat = 15;
@@ -56,7 +54,6 @@
       "com.apple.trackpad.forceClick" = true;
       "com.apple.springing.enabled" = true;
       AppleICUForce24HourTime = true;
-      # Allows dragging a window from anywhere in it.
       NSWindowShouldDragOnGesture = true;
     };
 
@@ -108,7 +105,6 @@
     };
 
     WindowManager = {
-      # Hide desktop icons so files on ~/Desktop stay off the wallpaper.
       HideDesktop = true;
       EnableTiledWindowMargins = false;
     };

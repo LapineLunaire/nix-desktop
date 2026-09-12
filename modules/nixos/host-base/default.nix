@@ -1,5 +1,5 @@
-# Base NixOS for full hosts: boot loader, escalation rules, zram, locale, console, and the firewall defaults, on top of the option namespace, nix settings, hardening, persisted state, packages, services, and temp dir mounts.
 {
+  config,
   lib,
   pkgs,
   ...
@@ -8,10 +8,6 @@
     ../../host.nix
     ../../nix-settings.nix
     ../security.nix
-    ./packages.nix
-    ./persistence.nix
-    ./services.nix
-    ./tmp-dirs.nix
   ];
 
   boot = {
@@ -19,16 +15,15 @@
     loader = {
       systemd-boot = {
         enable = lib.mkDefault true;
-        # Editing the kernel command line at the boot menu allows root access via init=/bin/sh.
+        # Prevent boot-menu edits such as init=/bin/sh.
         editor = false;
       };
       efi.canTouchEfiVariables = true;
     };
-    # High swappiness suits zram: compressed pages stay in RAM, so a swap-out costs compression time.
+    # Prefer compression in zram before reclaiming the file cache.
     kernel.sysctl."vm.swappiness" = 100;
   };
 
-  # wheel escalates with doas, and persist caches the authentication for a period after a successful prompt.
   security.doas = {
     enable = true;
     extraRules = [
@@ -38,8 +33,8 @@
       }
     ];
   };
-  # doas-sudo-shim installs one binary, named sudo, that calls doas. modules/nixos/security.nix disables the real sudo.
-  environment.systemPackages = [pkgs.doas-sudo-shim];
+  # Use doas for tools that invoke sudo.
+  environment.systemPackages = [pkgs.ghostty.terminfo pkgs.doas-sudo-shim];
 
   security.polkit.enable = true;
 
@@ -55,7 +50,7 @@
   i18n = {
     defaultLocale = "en_US.UTF-8";
     extraLocaleSettings = {
-      LC_TIME = "C.UTF-8"; # ISO 8601 time format: HH:MM:SS (24-hour).
+      LC_TIME = "C.UTF-8";
       LC_MONETARY = "nl_NL.UTF-8";
       LC_MEASUREMENT = "nl_NL.UTF-8";
       LC_PAPER = "nl_NL.UTF-8";
@@ -69,4 +64,50 @@
 
   networking.firewall.enable = true;
   networking.nftables.enable = true;
+
+  programs.zsh.enable = true;
+
+  # Also provide an editor for root shells.
+  programs.neovim = {
+    enable = true;
+    viAlias = true;
+    vimAlias = true;
+  };
+
+  programs.nh = {
+    enable = true;
+    clean = {
+      enable = true;
+      extraArgs = "--keep 3";
+      dates = "daily";
+    };
+    flake = config.host.flakePath;
+  };
+
+  services.dbus.implementation = "broker";
+  services.fstrim.enable = true;
+  services.fwupd.enable = true;
+
+  services.chrony = {
+    enable = true;
+    enableNTS = true;
+    servers = ["time.cloudflare.com"];
+  };
+
+  services.openssh = {
+    enable = true;
+    settings = {
+      PermitRootLogin = "no";
+      PasswordAuthentication = false;
+      KbdInteractiveAuthentication = false;
+      AuthenticationMethods = "publickey";
+    };
+    # Also used as the SOPS decryption identity.
+    hostKeys = [
+      {
+        path = "/etc/ssh/ssh_host_ed25519_key";
+        type = "ed25519";
+      }
+    ];
+  };
 }

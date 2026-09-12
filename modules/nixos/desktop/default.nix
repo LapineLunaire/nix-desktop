@@ -1,27 +1,24 @@
-# Base NixOS for graphical hosts: NetworkManager, the Wayland session variables, the audio and Wine kernel bits, and the aagl launchers, on top of the font set and the desktop services.
 {inputs, ...}: {
   imports = [
     inputs.aagl.nixosModules.default
     ./fonts.nix
-    ./services.nix
   ];
 
   networking.networkmanager.enable = true;
 
-  # Keep the HDA codec powered; entering and leaving power save causes an audible pop.
+  # Avoid pops when the HDA codec enters power saving.
   boot.extraModprobeConfig = ''
     options snd_hda_intel power_save=0
   '';
 
   virtualisation.waydroid.enable = true;
 
-  # ntsync provides the kernel-side NT synchronisation primitives Wine and Proton use for Win32 sync objects.
+  # Wine/Proton synchronization support.
   boot.kernelModules = ["ntsync"];
 
-  # SCHED_IDLE on the daemon is inherited by its build processes, so a build only gets CPU time no other task wants.
+  # Keep Nix builds below interactive work in the CPU scheduler.
   nix.daemonCPUSchedPolicy = "idle";
 
-  # The pipewire module takes realtime scheduling from security.rtkit.enable and leaves the setting to the configuration.
   security.rtkit.enable = true;
 
   programs.ssh = {
@@ -34,7 +31,6 @@
     QT_QPA_PLATFORM = "wayland";
     PROTON_ENABLE_WAYLAND = "1";
     PROTON_ENABLE_HDR = "1";
-    # Stem darkening in FreeType's CFF and autofitter engines adds weight to thin strokes at small sizes.
     FREETYPE_PROPERTIES = "cff:no-stem-darkening=0 autofitter:no-stem-darkening=0";
   };
 
@@ -42,4 +38,42 @@
     "/share/applications"
     "/share/xdg-desktop-portal"
   ];
+
+  services.pcscd.enable = true;
+
+  services.kmscon = {
+    enable = true;
+    useXkbConfig = true;
+    config.hwaccel = true;
+    config.font-name = "JetBrainsMono Nerd Font";
+  };
+
+  services.earlyoom = {
+    enable = true;
+    freeMemThreshold = 2;
+    freeSwapThreshold = 2;
+  };
+
+  services.displayManager.plasma-login-manager.enable = true;
+
+  services.desktopManager.plasma6.enable = true;
+
+  services.pipewire = {
+    enable = true;
+    alsa.enable = true;
+    alsa.support32Bit = true;
+    pulse.enable = true;
+    # Avoid pops when ALSA devices resume.
+    wireplumber.extraConfig."99-disable-suspend" = {
+      "monitor.alsa.rules" = [
+        {
+          matches = [
+            {"node.name" = "~alsa_input.*";}
+            {"node.name" = "~alsa_output.*";}
+          ];
+          actions.update-props."session.suspend-timeout-seconds" = 0;
+        }
+      ];
+    };
+  };
 }

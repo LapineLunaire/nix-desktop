@@ -1,4 +1,3 @@
-# carmilla's Plasma workspace: the look and feel, panels, hotkeys, and the wallpaper images read out of the flake checkout.
 {
   lib,
   osConfig,
@@ -19,9 +18,7 @@
           theme = "Bibata-Modern-Ice";
           size = 22;
         };
-        # plasma-manager interpolates this into a plasma-changeicons command unquoted, so it takes the icon directory name as a single word.
         iconTheme = "breeze-dark";
-        # Plasma reads these images from the checkout; the tracked files also exist in the flake's store snapshot.
         wallpaper = "${wallpapers}/__camellya_wuthering_waves_drawn_by_lemontea_ekvr5838__1ba4f9536e85b04a5d04733db7eee4e9.png";
       };
 

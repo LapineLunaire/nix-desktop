@@ -1,9 +1,8 @@
-# The nixpkgs overlays every instance carries: additions exposes pkgs/ as pkgs.<name>, and modifications overrides packages that need wrapping.
 {
   additions = final: _prev: import ./pkgs final;
 
   modifications = _final: prev: {
-    # modules/nixos/desktop sets QT_QPA_PLATFORM to wayland for the session; davinci-resolve and winbox4 are launched with it set to xcb.
+    # These applications need XWayland despite the session-wide Wayland default.
     davinci-resolve = prev.symlinkJoin {
       inherit (prev.davinci-resolve) name meta;
       paths = [prev.davinci-resolve];

@@ -1,4 +1,3 @@
-# carmilla's home packages: the tooling shared by every system, then the darwin-only and Linux-only additions.
 {
   lib,
   pkgs,

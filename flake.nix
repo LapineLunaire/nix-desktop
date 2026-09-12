@@ -19,7 +19,7 @@
       inputs.nixpkgs.follows = "nixpkgs";
     };
 
-    # Declared at the root so lanzaboote, its pre-commit input, and aagl each follow one instance of these two.
+    # Share build-tool inputs between Lanzaboote and aagl.
     flake-compat.url = "github:NixOS/flake-compat/master";
 
     rust-overlay = {
@@ -71,7 +71,7 @@
   } @ inputs: let
     overlays = import ./overlays.nix;
 
-    pkgsFor = {system}:
+    pkgsFor = system:
       import nixpkgs {
         inherit system;
         overlays = [overlays.additions overlays.modifications];
@@ -85,18 +85,16 @@
         useGlobalPkgs = true;
         useUserPackages = true;
         backupFileExtension = "bak";
-        extraSpecialArgs = specialArgs;
         sharedModules = [nixvim.homeModules.nixvim];
       };
     };
     systems = ["x86_64-linux" "aarch64-darwin"];
     forEachSystem = nixpkgs.lib.genAttrs systems;
   in {
-    # Public NixOS modules; internal consumers use relative imports.
+    # Modules available to other flakes.
     nixosModules = {
       host-base = ./modules/nixos/host-base;
       desktop = ./modules/nixos/desktop;
-      binary-cache = ./modules/nixos/binary-cache.nix;
       secure-boot = ./modules/nixos/secure-boot.nix;
       security = ./modules/nixos/security.nix;
     };
@@ -106,7 +104,7 @@
     formatter = forEachSystem (system: nixpkgs.legacyPackages.${system}.alejandra);
 
     devShells = forEachSystem (system: let
-      pkgs = pkgsFor {inherit system;};
+      pkgs = pkgsFor system;
     in {
       default = pkgs.mkShell {
         # Prefer uutils on the development shell's PATH; package dependencies keep their GNU tools.
@@ -127,7 +125,7 @@
     });
 
     packages = forEachSystem (system: let
-      pkgs = pkgsFor {inherit system;};
+      pkgs = pkgsFor system;
     in
       nixpkgs.lib.filterAttrs (
         _: nixpkgs.lib.meta.availableOn pkgs.stdenv.hostPlatform
@@ -136,7 +134,7 @@
     nixosConfigurations.camellya = nixpkgs.lib.nixosSystem {
       inherit specialArgs;
       modules = [
-        {nixpkgs.pkgs = pkgsFor {system = "x86_64-linux";};}
+        {nixpkgs.pkgs = pkgsFor "x86_64-linux";}
         impermanence.nixosModules.impermanence
         lanzaboote.nixosModules.lanzaboote
         sops-nix.nixosModules.sops
@@ -150,7 +148,7 @@
     darwinConfigurations.silverwolf = nix-darwin.lib.darwinSystem {
       inherit specialArgs;
       modules = [
-        {nixpkgs.pkgs = pkgsFor {system = "aarch64-darwin";};}
+        {nixpkgs.pkgs = pkgsFor "aarch64-darwin";}
         home-manager.darwinModules.home-manager
         homeManagerSettings
         ./hosts/silverwolf

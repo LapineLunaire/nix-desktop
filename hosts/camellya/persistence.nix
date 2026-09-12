@@ -1,6 +1,15 @@
-# State this host persists beyond the /var that host-base/persistence.nix covers.
 {...}: {
-  environment.persistence."/persist".directories = [
-    "/etc/NetworkManager/system-connections"
-  ];
+  environment.persistence."/persist" = {
+    hideMounts = true;
+    directories = [
+      "/etc/NetworkManager/system-connections"
+      "/var/lib"
+      "/var/log"
+    ];
+    files = [
+      "/etc/machine-id"
+      "/etc/ssh/ssh_host_ed25519_key"
+      "/etc/ssh/ssh_host_ed25519_key.pub"
+    ];
+  };
 }

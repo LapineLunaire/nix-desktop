@@ -1,4 +1,3 @@
-# The font set and the fontconfig rules that pick a CJK face per language, appended after the Latin defaults.
 {
   lib,
   pkgs,
@@ -16,7 +15,7 @@
     fontconfig = {
       subpixel.rgba = "rgb";
 
-      # Latin only: defaultFonts has no notion of language, so a CJK face here would be pinned across every locale.
+      # Choose CJK fonts per language below, rather than making one the global default.
       defaultFonts = {
         monospace = ["JetBrainsMono Nerd Font"];
         sansSerif = ["Noto Sans"];
@@ -24,7 +23,6 @@
         emoji = ["Noto Color Emoji"];
       };
 
-      # confPackages land in etc/fonts/conf.d, which fontconfig reads directly.
       confPackages = let
         cjkFamilies = {
           monospace = "Noto Sans Mono CJK";
@@ -32,7 +30,7 @@
           serif = "Noto Serif CJK";
         };
 
-        # Appended in order: the tagged languages, then Han with no tag, then emoji.
+        # Language-specific faces first; Traditional Chinese is the fallback.
         tiers =
           lib.mapAttrsToList (lang: face: {
             inherit lang;
@@ -46,11 +44,10 @@
           }
           ++ [
             {family = generic: "${cjkFamilies.${generic}} TC";}
-            # Emoji comes last, so codepoints that are only incidentally emoji, U+00A9 among them, still render from the text faces.
+            # Keep text forms of characters such as © ahead of emoji.
             {family = _: "Noto Color Emoji";}
           ];
 
-        # append_last puts each family at the end of the list, which keeps the tiers in the order they are generated.
         rules =
           lib.concatMapStrings (
             tier:

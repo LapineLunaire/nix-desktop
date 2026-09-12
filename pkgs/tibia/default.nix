@@ -35,10 +35,10 @@
 }: let
   tibia-unwrapped = stdenvNoCC.mkDerivation {
     pname = "tibia-unwrapped";
-    # The download URL is unversioned; the tibia job in .forgejo/workflows/flake-update.yml refreshes this hash nightly.
+    # The nightly workflow updates the hash of this unversioned download.
     version = "unstable";
 
-    # static.tibia.com sits behind Cloudflare, which answers 403 to a request that omits an Accept-Encoding header. --compressed sends one and decodes the response, matching what nix-prefetch-url does, so the hash stays the one that tool prints.
+    # The server requires Accept-Encoding. Match nix-prefetch-url's decoded response.
     src = fetchurl {
       url = "https://static.tibia.com/download/tibia.x64.tar.gz";
       curlOptsList = ["--compressed"];
@@ -89,13 +89,13 @@ in
       zlib
     ];
 
-    # Overrides the wayland QT_QPA_PLATFORM that modules/nixos/desktop sets for the session.
+    # The bundled Qt client needs XWayland.
     profile = ''
       export QT_QPA_PLATFORM=xcb
       unset WAYLAND_DISPLAY
     '';
 
-    # The client's qt.conf sets Prefix=., so the working directory has to be the payload for its plugins and bundled Qt libs to resolve.
+    # qt.conf uses Prefix=.; run from the payload directory.
     runScript = writeShellScript "tibia-start" ''
       export LD_LIBRARY_PATH="${tibia-unwrapped}/opt/tibia/lib''${LD_LIBRARY_PATH:+:$LD_LIBRARY_PATH}"
       cd ${tibia-unwrapped}/opt/tibia

@@ -1,4 +1,3 @@
-# carmilla's XDG base directories, user directories, and MIME defaults, on Linux only.
 {
   config,
   lib,
@@ -23,12 +22,12 @@
       };
     };
 
-    # A writable copy, so applications can still register handlers; each rebuild resets it to what this file declares.
+    # Keep this writable for applications. A rebuild restores these associations.
     home.activation.mimeApps = let
       zed = "dev.zed.Zed.desktop";
       firefox = "firefox.desktop";
 
-      # Text and source formats another application claims ahead of Zed: okular takes markdown, brave takes xml, nvim takes the source types, and krita takes csv. Formats nothing claims resolve through text/plain.
+      # Prefer Zed for text/source types claimed by other installed applications.
       editorTypes = [
         "text/plain"
         "text/markdown"
@@ -75,7 +74,7 @@
           "x-scheme-handler/wootwoot" = "wootility.desktop";
         };
 
-      # The applications each type offers under "Open With", beyond the default above.
+      # Additional choices in Open With.
       addedAssociations =
         assign editorTypes [zed]
         // assign browserTypes [firefox]

@@ -1,4 +1,3 @@
-# Steam, the game launchers, OBS, nix-ld, and the Plasma applications this host excludes.
 {pkgs, ...}: {
   environment.plasma6.excludePackages = with pkgs.kdePackages; [
     elisa

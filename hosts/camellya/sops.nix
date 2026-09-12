@@ -1,6 +1,8 @@
 {config, ...}: {
   sops = {
     defaultSopsFile = ./secrets.yaml;
+    # Needed before user creation, while /etc is still being populated.
+    age.sshKeyPaths = ["/persist/etc/ssh/ssh_host_ed25519_key"];
 
     secrets = {
       "carmilla-password-hash".neededForUsers = true;

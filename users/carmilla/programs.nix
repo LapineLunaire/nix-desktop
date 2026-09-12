@@ -1,4 +1,3 @@
-# carmilla's home-manager programs: the shell, the terminal tooling, the editors, and the desktop applications they configure.
 {
   config,
   lib,
@@ -120,7 +119,6 @@
 
   programs.nixvim = {
     enable = true;
-    # Reuse the host's nixpkgs instance for nixvim's packages.
     nixpkgs.pkgs = pkgs;
     defaultEditor = true;
     viAlias = true;
@@ -139,7 +137,7 @@
       settings.contrast = "hard";
     };
 
-    # nvim-lspconfig supplies the default server definitions (cmd, filetypes, root markers) that lsp.servers.* activates.
+    # Supply server definitions for lsp.servers below.
     plugins.lspconfig.enable = true;
     lsp.servers.nixd = {
       enable = true;
@@ -157,7 +155,6 @@
 
   programs.ssh = {
     enable = true;
-    # home-manager warns while enableDefaultConfig is true and will drop the implicit default block.
     enableDefaultConfig = false;
     package = pkgs.openssh;
   };
@@ -209,7 +206,7 @@
 
   programs.ghostty = {
     enable = true;
-    # nixpkgs builds ghostty from source on Linux only; Home Manager copies ghostty-bin's macOS app into ~/Applications/Home Manager Apps.
+    # Use the macOS binary; the source package is Linux-only.
     package =
       if pkgs.stdenv.hostPlatform.isDarwin
       then pkgs.ghostty-bin
@@ -219,7 +216,7 @@
       background-opacity = 0.95;
       window-padding-x = 8;
       window-padding-y = 8;
-      # Disable Ghostty's macOS updater so updates follow the Nix configuration.
+      # Update through Nix.
       auto-update = "off";
     };
   };
@@ -251,9 +248,8 @@
         fgrep = "fgrep --color=auto";
       }
       // lib.optionalAttrs pkgs.stdenv.hostPlatform.isLinux {
-        # --reflink=auto uses CoW where the filesystem supports it and copies otherwise; --sparse=always skips writing blocks of zeroes.
         cp = "cp --reflink=auto --sparse=always";
-        # Derives the sops age key from the SSH host key, which needs elevated privileges to read.
+        # The host decryption key requires root access.
         sops = "SOPS_AGE_KEY=\"$(doas cat /etc/ssh/ssh_host_ed25519_key | ssh-to-age -private-key)\" sops";
       };
   };

@@ -1,9 +1,6 @@
 name: Update
 
-# One daily run, after the server repository's at 02:00. The tibia refresh is a job the update
-# depends on rather than an earlier cron, so ordering is a needs: edge and a slow client download
-# delays the update instead of racing it. With runner.capacity = 1 on the shared runner, this queues
-# behind a server run rather than contending with it.
+# Run after the server updates. The lock update waits for the Tibia job.
 on:
   schedule:
     - cron: "0 3 * * *"
@@ -19,9 +16,7 @@ jobs:
         with:
           persist-credentials: false
 
-      # static.tibia.com answers 403 to a request that omits an Accept-Encoding header. nix-prefetch-url's
-      # libcurl sends one, so it fetches the same bytes as the --compressed fetchurl in pkgs/tibia. It
-      # always refetches, so a stale hash is caught whatever the cache holds.
+      # Match fetchurl's Accept-Encoding handling and refresh the unversioned download.
       - name: Update hash
         id: tibia
         run: |
@@ -69,8 +64,7 @@ jobs:
             echo "changed=true" >> "$GITHUB_OUTPUT"
           fi
 
-      # camellya builds; silverwolf is aarch64-darwin on an x86_64-linux runner, so it only evaluates,
-      # which still catches breakage from an updated input.
+      # Build Linux; macOS can only be evaluated on this runner.
       - name: Build
         id: build
         if: steps.check.outputs.changed == 'true'
@@ -85,8 +79,7 @@ jobs:
           ATTIC_TOKEN: ${{ secrets.ATTIC_TOKEN }}
           STORE_PATH: ${{ steps.build.outputs.path }}
         run: |
-          # Skip cleanly when the secret is absent rather than failing the job and blocking the lock
-          # commit below; once it exists, a real push failure still fails the step normally.
+          # Cache uploads are optional until the token is configured.
           if [ -z "$ATTIC_TOKEN" ]; then
             echo "ATTIC_TOKEN not set, skipping push"
             exit 0
