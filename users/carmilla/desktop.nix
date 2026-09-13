@@ -75,17 +75,7 @@
         };
 
       # Additional choices in Open With.
-      addedAssociations =
-        assign editorTypes [zed]
-        // assign browserTypes [firefox]
-        // {
-          "x-scheme-handler/claude-cli" = ["claude-code-url-handler.desktop"];
-          "x-scheme-handler/discord-1345366770436800533" = ["discord-1345366770436800533.desktop"];
-          "x-scheme-handler/heroic" = ["com.heroicgameslauncher.hgl.desktop" "heroic.desktop"];
-          "x-scheme-handler/proton-inbox" = ["proton-mail.desktop" "electron.desktop"];
-          "x-scheme-handler/web+wootwoot" = ["wootility.desktop"];
-          "x-scheme-handler/wootwoot" = ["wootility.desktop"];
-        };
+      addedAssociations = lib.mapAttrs (_: app: [app]) defaultApplications;
 
       mimeApps = pkgs.writeText "mimeapps.list" (lib.generators.toINI
         {

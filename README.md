@@ -21,6 +21,7 @@ nh darwin switch .  # silverwolf
 ```sh
 alejandra .
 nix flake check --all-systems --no-build
+nix eval .#darwinConfigurations.silverwolf.config.system.build.toplevel.drvPath
 nix build .#tibia
 ```
 
@@ -41,7 +42,7 @@ See [installation and recovery setup](docs/install.md) for disk layout, keys, Se
 
 ## Conventions
 
-Use Alejandra and keep bindings near their consumers. A shared value can live in an inline module when only a few settings need it, as with `superpowers`. Imports come first; related options stay together. Comments explain workarounds and choices that the code alone does not make clear. Commit subjects use `scope: description`.
+Use Alejandra and keep bindings near their consumers. Use ordinary `let` bindings for shared values; reserve imports for separate modules. Imports come first; related options stay together. Comments explain workarounds and choices that the code alone does not make clear. Commit subjects use `scope: description`.
 
 ## Host notes
 

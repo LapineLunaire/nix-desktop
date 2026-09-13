@@ -91,7 +91,6 @@
     systems = ["x86_64-linux" "aarch64-darwin"];
     forEachSystem = nixpkgs.lib.genAttrs systems;
   in {
-    # Modules available to other flakes.
     nixosModules = {
       host-base = ./modules/nixos/host-base;
       desktop = ./modules/nixos/desktop;

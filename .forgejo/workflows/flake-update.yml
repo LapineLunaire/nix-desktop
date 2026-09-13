@@ -1,6 +1,7 @@
 name: Update
 
-# Run after the server updates. The lock update waits for the Tibia job.
+# Scheduled one hour after the server workflow; the shared runner queues overlapping jobs.
+# Within this workflow, the lock update waits for the Tibia job.
 on:
   schedule:
     - cron: "0 3 * * *"

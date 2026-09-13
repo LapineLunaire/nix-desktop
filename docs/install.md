@@ -95,13 +95,17 @@ EOF
 nix --extra-experimental-features 'nix-command flakes' shell --inputs-from . nixpkgs#sbctl -c sbctl --config /tmp/sbctl-install.yaml create-keys
 ```
 
-Skip `create-keys` when restoring keys. The bind mount makes the same persisted keys available at the install target's `/var/lib/sbctl`, where Lanzaboote expects them. See [sbctl's configuration reference](https://github.com/Foxboron/sbctl/blob/master/docs/sbctl.conf.5.scd) for `keydir` and `guid`.
+Skip `create-keys` when restoring keys. The bind mount makes the same persisted keys available at the install target's `/var/lib/sbctl`, where Lanzaboote expects them. See [sbctl's configuration reference](https://github.com/Foxboron/sbctl/blob/master/docs/sbctl.conf.5.txt) for `keydir` and `guid`.
 
 **7. Install**
 
 ```sh
-nixos-install --flake /mnt/persist/nix-config#camellya
+nixos-install --no-root-passwd --flake /mnt/persist/nix-config#camellya
+chown -R 1000:100 /mnt/persist/nix-config
 ```
+
+Root login stays locked. The checkout belongs to `carmilla:users` (UID 1000, GID 100),
+so the user can edit it.
 
 The installation signs the boot entries using the keys prepared above. Boot the installed system with Secure Boot enforcement disabled while the new keys are not yet enrolled. Use the LUKS passphrase for this boot.
 

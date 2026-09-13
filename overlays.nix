@@ -3,6 +3,7 @@
 
   modifications = _final: prev: {
     # These applications need XWayland despite the session-wide Wayland default.
+    # The pinned 21.1 download has a different hash than nixpkgs records.
     davinci-resolve = let
       repinned = prev.davinci-resolve.override {
         runCommandLocal = name: env: script:

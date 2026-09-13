@@ -6,7 +6,6 @@
   makeDesktopItem,
   stdenvNoCC,
   writeShellScript,
-  # System libs
   alsa-lib,
   brotli,
   dbus,

@@ -1,9 +1,9 @@
 {pkgs, ...}: {
   imports = [
     ../../modules/nixos/host-base
-    ./binary-cache.nix
     ../../modules/nixos/desktop
     ../../modules/nixos/secure-boot.nix
+    ./binary-cache.nix
     ./hardware-configuration.nix
     ./persistence.nix
     ./sops.nix
