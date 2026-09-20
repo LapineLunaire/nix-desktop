@@ -1,10 +1,10 @@
 name: Update
 
-# Scheduled one hour after the server workflow; the shared runner queues overlapping jobs.
-# Within this workflow, the lock update waits for the Tibia job.
+# Run at 04:00 UTC, after the servers' 03:00 UTC upgrade checks, which may restart this runner.
+# The shared runner queues overlapping jobs; the lock update waits for the Tibia job.
 on:
   schedule:
-    - cron: "0 3 * * *"
+    - cron: "0 4 * * *"
   workflow_dispatch: {}
 
 jobs:
