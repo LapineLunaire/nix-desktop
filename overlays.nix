@@ -3,21 +3,14 @@
 
   modifications = _final: prev: {
     # These applications need XWayland despite the session-wide Wayland default.
-    # The pinned 21.1 download has a different hash than nixpkgs records.
-    davinci-resolve = let
-      repinned = prev.davinci-resolve.override {
-        runCommandLocal = name: env: script:
-          prev.runCommandLocal name (env // {outputHash = "sha256-+3SB32EHpH9/0hM3h8CrO6f7V4ZAmxUFh3P8m6QDeO0=";}) script;
-      };
-    in
-      prev.symlinkJoin {
-        inherit (repinned) name meta;
-        paths = [repinned];
-        nativeBuildInputs = [prev.makeWrapper];
-        postBuild = ''
-          wrapProgram $out/bin/davinci-resolve --set QT_QPA_PLATFORM xcb
-        '';
-      };
+    davinci-resolve = prev.symlinkJoin {
+      inherit (prev.davinci-resolve) name meta;
+      paths = [prev.davinci-resolve];
+      nativeBuildInputs = [prev.makeWrapper];
+      postBuild = ''
+        wrapProgram $out/bin/davinci-resolve --set QT_QPA_PLATFORM xcb
+      '';
+    };
 
     winbox4 =
       if prev.stdenv.hostPlatform.isLinux
