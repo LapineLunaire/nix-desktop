@@ -1,7 +1,8 @@
 name: Update
 
-# Run at 04:00 UTC, after the servers' 03:00 UTC upgrade checks, which may restart this runner.
-# The shared runner queues overlapping jobs; the lock update waits for the Tibia job.
+# Leave a buffer after the servers' 03:00 UTC upgrades, which can restart this runner.
+# The schedule does not wait for upgrades; the lock update waits for the Tibia job.
+# The shared runner has capacity 1, so overlapping server and desktop jobs queue.
 on:
   schedule:
     - cron: "0 4 * * *"

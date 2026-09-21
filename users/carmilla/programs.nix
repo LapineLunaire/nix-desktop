@@ -153,6 +153,7 @@ in {
     enable = true;
     enableDefaultConfig = false;
     package = pkgs.openssh;
+    matchBlocks."*".identityFile = "${config.home.homeDirectory}/.ssh/id_ed25519_sk_rk_carmilla";
   };
 
   programs.tealdeer = {

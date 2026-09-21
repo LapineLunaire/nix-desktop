@@ -16,14 +16,16 @@ nh os switch .      # camellya
 nh darwin switch .  # silverwolf
 ```
 
-`nix develop` provides the formatter, language server, and secrets tools. It also enables the Git formatting hook for this clone. `.envrc` loads the same shell through direnv.
+`nix develop` provides the formatter, language server, and secrets tools, and enables the formatting hook for this clone. The hook checks staged Nix files; if Alejandra is unavailable, it warns and skips the check. Run `direnv allow` to load the same shell through `.envrc`.
 
 ```sh
 alejandra .
-nix flake check --all-systems --no-build
-nix eval .#darwinConfigurations.silverwolf.config.system.build.toplevel.drvPath
-nix build .#tibia
+nix flake check --all-systems --no-build --no-write-lock-file --option allow-import-from-derivation false
+nix eval --no-write-lock-file --raw '.#darwinConfigurations.silverwolf.config.system.build.toplevel.drvPath'
+nix build '.#tibia'  # x86_64-linux only
 ```
+
+`nix flake check --no-build` and `nix eval` evaluate configuration and derivations; they do not build or activate either system. Silverwolf's toplevel is evaluated explicitly because `nix flake check` does not evaluate the systems under `darwinConfigurations`. Build and activation checks belong on the appropriate platform.
 
 On Camellya, the `sops` shell alias reads the host key through doas:
 
@@ -32,6 +34,14 @@ sops hosts/camellya/secrets.yaml
 ```
 
 See [installation and recovery setup](docs/install.md) for disk layout, keys, Secure Boot, and TPM enrollment.
+
+## Automated updates
+
+The Forgejo workflow runs daily at 04:00 UTC (`0 4 * * *`) or manually. [Schedules use UTC by default](https://forgejo.org/docs/v15.0/user/actions/reference/#onschedule). Both jobs use the shared `nixos` host runner configured in `nix-server`. Its capacity is 1, so jobs queue if the server workflow, scheduled at 02:00 UTC, is still running.
+
+The Tibia job refreshes the unversioned download's hash. On a change, it builds Tibia, then signs and pushes the update. The flake-update job waits for Tibia to succeed, checks out the branch again to include that commit, and updates `flake.lock`. When the lock changes, it builds Camellya's closure and evaluates Silverwolf's toplevel, then signs and pushes the lockfile. Silverwolf is only evaluated on this Linux runner. If `ATTIC_TOKEN` is set, Camellya's closure is uploaded to the Attic `desktop` cache before the push; a failed upload prevents the push.
+
+The 04:00 schedule leaves a buffer after the servers' 03:00 UTC upgrade checks, which have up to 15 minutes of jitter and can restart the runner guest. It does not wait for upgrades to finish, so long upgrades can still overlap. Desktop activation remains manual.
 
 ## Layout
 
@@ -46,8 +56,10 @@ Use Alejandra and keep bindings near their consumers. Use ordinary `let` binding
 
 ## Host notes
 
-- Camellya has a tmpfs root, `/tmp`, and `/var/tmp`. Persistent state is listed in `hosts/camellya/persistence.nix`; `/home` has its own filesystem.
+- Camellya is configured with a tmpfs root, `/tmp`, and `/var/tmp`. Persistent state is listed in `hosts/camellya/persistence.nix`; `/home` has its own filesystem. Persistence does not provide a backup.
 - Its kernel targets Zen 5 explicitly so other machines can build it. To use the stock kernel, replace the override with `pkgs.linuxPackages_7_2`.
-- uutils is preferred interactively; package dependencies retain GNU utilities.
+- Camellya's user profile precedes the system profile on PATH, so interactive commands prefer uutils. The system profile retains GNU utilities, including commands uutils omits. The development shell includes uutils on both platforms; Silverwolf's user profile does not add them.
 - The RODECaster routing is generated as JSON in a private SOPS template. Its serial stays out of the generated store file. PipeWire accepts [standard JSON configuration](https://docs.pipewire.org/page_man_pipewire_conf_5.html).
-- Wallpaper paths point to the checkout. Home Manager writes the MIME and monitor settings as writable copies; rebuilds restore the declared values.
+- Wallpaper paths point to the checkout; the tracked images are also present in the flake's store snapshot. Home Manager writes Camellya's MIME and monitor settings as writable copies; rebuilds restore the declared values.
+- Camellya reads the private `desktop` cache using the `attic-pull-token` SOPS secret. Its token is rendered into a root-only netrc file. The flake still evaluates without decrypting secrets; cache access and hardware operation need checks on the running host.
+- Silverwolf's Homebrew activation updates and upgrades packages and removes undeclared formulae and casks. Review `hosts/silverwolf/default.nix` before switching. These downloads and macOS permissions are outside Nix evaluation.
