@@ -37,7 +37,7 @@ See [installation and recovery setup](docs/install.md) for disk layout, keys, Se
 
 ## Automated updates
 
-The Forgejo workflow runs daily at 04:00 UTC (`0 4 * * *`) or manually. [Schedules use UTC by default](https://forgejo.org/docs/v15.0/user/actions/reference/#onschedule). Both jobs use the shared `nixos` host runner configured in `nix-server`. Its capacity is 1, so jobs queue if the server workflow, scheduled at 02:00 UTC, is still running.
+The Forgejo workflow runs daily at 04:00 UTC (`0 4 * * *`) or manually. [Schedules use UTC by default](https://forgejo.org/docs/v15.0/user/actions/reference/#onschedule). Both jobs use the shared `nixos` host runner configured in `nix-server`.
 
 The Tibia job refreshes the unversioned download's hash. On a change, it builds Tibia, then signs and pushes the update. The flake-update job waits for Tibia to succeed, checks out the branch again to include that commit, and updates `flake.lock`. When the lock changes, it builds Camellya's closure and evaluates Silverwolf's toplevel, then signs and pushes the lockfile. Silverwolf is only evaluated on this Linux runner. If `ATTIC_TOKEN` is set, Camellya's closure is uploaded to the Attic `desktop` cache before the push; a failed upload prevents the push.
 

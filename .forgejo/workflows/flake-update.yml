@@ -2,7 +2,6 @@ name: Update
 
 # Leave a buffer after the servers' 03:00 UTC upgrades, which can restart this runner.
 # The schedule does not wait for upgrades; the lock update waits for the Tibia job.
-# The shared runner has capacity 1, so overlapping server and desktop jobs queue.
 on:
   schedule:
     - cron: "0 4 * * *"
@@ -92,7 +91,7 @@ jobs:
           trap 'rm -rf -- "$XDG_CONFIG_HOME"' EXIT
           attic login lunaire https://cache.lunaire.moe/ "$ATTIC_TOKEN"
           unset ATTIC_TOKEN
-          attic push lunaire:desktop "$STORE_PATH"
+          attic push --ignore-upstream-cache-filter lunaire:desktop "$STORE_PATH"
 
       - name: Commit and push
         if: steps.check.outputs.changed == 'true'
