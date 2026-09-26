@@ -11,6 +11,11 @@
     in {
       enable = true;
 
+      configFile."kdeglobals".General = {
+        TerminalApplication = "ghostty";
+        TerminalService = "com.mitchellh.ghostty.desktop";
+      };
+
       workspace = {
         lookAndFeel = "org.kde.breezedark.desktop";
         cursor = {
@@ -30,15 +35,19 @@
         appearance.wallpaper = "${wallpapers}/__camellya_wuthering_waves_drawn_by_bantish__231537f8c01272b8cb8f88e7a518a7a8.jpg";
       };
 
-      input.keyboard.layouts = [
-        {
-          layout = "us";
-          variant = "colemak";
-        }
-        {
-          layout = "us";
-        }
-      ];
+      input.keyboard = {
+        layouts = [
+          {
+            layout = "us";
+            variant = "colemak";
+          }
+          {
+            layout = "us";
+          }
+        ];
+        options = ["grp:win_space_toggle"];
+        switchingPolicy = "global";
+      };
 
       hotkeys.commands."launch-ghostty" = {
         name = "Launch Ghostty";
