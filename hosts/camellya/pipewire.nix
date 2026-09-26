@@ -3,6 +3,7 @@
   # Keep the alsa_ prefix: later rules see the renamed node, and the desktop suspend rule matches that prefix.
   multichannelOutput = "alsa_output.rodecaster_duo.multichannel";
   mainMixInput = "alsa_input.rodecaster_duo.main_mix";
+  fiioOutput = "alsa_output.fiio_k11";
 
   rodecasterNodes = [
     {
@@ -64,8 +65,11 @@ in {
       }
       {
         matches = [{"node.name" = "alsa_output.usb-FIIO_FiiO_K11-01.pro-output-0";}];
-        # Only the RODECaster main-mix loopback should drive the K11.
-        actions."update-props"."media.class" = "Audio/Sink/Internal";
+        actions."update-props" = {
+          "node.name" = fiioOutput;
+          # Only the RODECaster main-mix loopback should drive the K11.
+          "media.class" = "Audio/Sink/Internal";
+        };
       }
     ];
   };
@@ -125,7 +129,7 @@ in {
             "audio.position" = ["AUX0" "AUX1"];
           };
           "playback.props" = {
-            "target.object" = "alsa_output.usb-FIIO_FiiO_K11-01.pro-output-0";
+            "target.object" = fiioOutput;
             "stream.dont-remix" = true;
             "audio.position" = ["AUX0" "AUX1"];
           };
