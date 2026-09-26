@@ -1,6 +1,5 @@
 {
   lib,
-  osConfig,
   pkgs,
   ...
 }: {
@@ -8,7 +7,7 @@
     home.packages = [pkgs.bibata-cursors];
 
     programs.plasma = let
-      wallpapers = "${osConfig.host.flakePath}/users/carmilla/wallpapers";
+      wallpapers = ./wallpapers;
     in {
       enable = true;
 
