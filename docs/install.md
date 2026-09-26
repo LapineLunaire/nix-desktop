@@ -82,7 +82,7 @@ nix --extra-experimental-features 'nix-command flakes' shell --inputs-from . nix
 
 A newly generated key cannot decrypt the existing ciphertext. If the old identity is unavailable, recreate the secret values and encrypt them for the new recipient before installing. Restoring the original host key does not require re-encryption.
 
-The declared secrets are `carmilla-password-hash`, `samba-username`, `samba-password`, `rodecaster-duo-serial`, and `attic-pull-token`. Carmilla's password hash is needed before user creation. The installed user's `sops` alias is not available in the installer.
+The declared secrets are `carmilla-password-hash`, `samba-username`, `samba-password`, and `attic-pull-token`. Carmilla's password hash is needed before user creation. The installed user's `sops` alias is not available in the installer.
 
 **6. Prepare Secure Boot signing keys in persistent storage**
 

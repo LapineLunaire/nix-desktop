@@ -8,7 +8,6 @@
       "carmilla-password-hash".neededForUsers = true;
       "samba-username" = {};
       "samba-password" = {};
-      "rodecaster-duo-serial" = {};
     };
 
     templates."samba-credentials".content = ''
