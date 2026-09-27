@@ -16,9 +16,4 @@
       obs-pipewire-audio-capture
     ];
   };
-
-  programs.gamemode.enable = true;
-  programs.steam.enable = true;
-  programs.anime-games-launcher.enable = true;
-  programs.honkers-railway-launcher.enable = true;
 }

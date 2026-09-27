@@ -2,7 +2,6 @@
   imports = [
     ../../modules/nixos/host-base
     ../../modules/nixos/desktop
-    ../../modules/nixos/secure-boot.nix
     ./binary-cache.nix
     ./hardware-configuration.nix
     ./persistence.nix
@@ -10,7 +9,8 @@
     ./displays.nix
     ./pipewire.nix
     ./samba-mounts.nix
-    ./desktop-packages.nix
+    ./desktop.nix
+    ./gaming.nix
   ];
 
   networking.hostName = "camellya";

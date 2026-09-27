@@ -1,6 +1,5 @@
-{inputs, ...}: {
+{
   imports = [
-    inputs.aagl.nixosModules.default
     ./fonts.nix
   ];
 
@@ -10,11 +9,6 @@
   boot.extraModprobeConfig = ''
     options snd_hda_intel power_save=0
   '';
-
-  virtualisation.waydroid.enable = true;
-
-  # Wine/Proton synchronization support.
-  boot.kernelModules = ["ntsync"];
 
   # Keep Nix builds below interactive work in the CPU scheduler.
   nix.daemonCPUSchedPolicy = "idle";
@@ -29,8 +23,6 @@
   environment.sessionVariables = {
     NIXOS_OZONE_WL = "1";
     QT_QPA_PLATFORM = "wayland";
-    PROTON_ENABLE_WAYLAND = "1";
-    PROTON_ENABLE_HDR = "1";
     FREETYPE_PROPERTIES = "cff:no-stem-darkening=0 autofitter:no-stem-darkening=0";
   };
 

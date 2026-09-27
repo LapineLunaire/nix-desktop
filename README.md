@@ -45,8 +45,8 @@ The 04:00 schedule leaves a buffer after the servers' 03:00 UTC upgrade checks, 
 
 ## Layout
 
-- `hosts/`: machine-specific hardware, filesystems, persistence, secrets, and applications. Camellya's cache and CPU target are configured here.
-- `modules/`: shared Nix settings and OS defaults. The flake exports the NixOS and Darwin modules for reuse.
+- `hosts/`: machine-specific hardware, filesystems, persistence, secrets, and applications. Camellya's desktop and gaming features are grouped in `desktop.nix` and `gaming.nix`.
+- `modules/`: shared Nix settings and OS defaults. The flake exports the NixOS and Darwin modules for reuse. The exported Secure Boot module includes Lanzaboote and is also used to compose Camellya; the desktop module needs no extra flake arguments.
 - `users/carmilla/`: account and Home Manager configuration, plus wallpapers.
 - `pkgs/`: the Tibia package; `overlays.nix` adds it and the application overrides.
 

@@ -80,7 +80,14 @@
 
     specialArgs = {inherit inputs;};
 
-    homeManagerSettings = {
+    secureBootModule = {
+      imports = [
+        lanzaboote.nixosModules.lanzaboote
+        ./modules/nixos/secure-boot.nix
+      ];
+    };
+
+    homeManagerModule = {
       home-manager = {
         useGlobalPkgs = true;
         useUserPackages = true;
@@ -94,7 +101,7 @@
     nixosModules = {
       host-base = ./modules/nixos/host-base;
       desktop = ./modules/nixos/desktop;
-      secure-boot = ./modules/nixos/secure-boot.nix;
+      secure-boot = secureBootModule;
       security = ./modules/nixos/security.nix;
     };
 
@@ -135,10 +142,10 @@
       modules = [
         {nixpkgs.pkgs = pkgsFor "x86_64-linux";}
         impermanence.nixosModules.impermanence
-        lanzaboote.nixosModules.lanzaboote
+        secureBootModule
         sops-nix.nixosModules.sops
         home-manager.nixosModules.home-manager
-        homeManagerSettings
+        homeManagerModule
         ./hosts/camellya
         ./users/carmilla
       ];
@@ -149,7 +156,7 @@
       modules = [
         {nixpkgs.pkgs = pkgsFor "aarch64-darwin";}
         home-manager.darwinModules.home-manager
-        homeManagerSettings
+        homeManagerModule
         ./hosts/silverwolf
         ./users/carmilla
       ];
