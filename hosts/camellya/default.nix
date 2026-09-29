@@ -56,8 +56,10 @@
     ip saddr 10.28.64.0/24 udp dport 5678 accept
   '';
 
-  # smartd reports through the journal and wall.
-  services.smartd.enable = true;
+  services.smartd = {
+    enable = true;
+    notifications.systembus-notify.enable = true;
+  };
   # smartd references smartmontools but does not add smartctl to PATH.
   environment.systemPackages = [pkgs.smartmontools];
 

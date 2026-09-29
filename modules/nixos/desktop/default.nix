@@ -44,6 +44,7 @@
     enable = true;
     freeMemThreshold = 2;
     freeSwapThreshold = 2;
+    enableNotifications = true;
   };
 
   services.displayManager.plasma-login-manager.enable = true;
