@@ -1,10 +1,10 @@
 name: Update
 
-# Leave a buffer after the servers' 03:00 UTC upgrades, which can restart this runner.
+# Follow server CI and the servers' 01:30 UTC upgrades, which can restart this runner.
 # The schedule does not wait for upgrades; the lock update waits for the Tibia job.
 on:
   schedule:
-    - cron: "0 4 * * *"
+    - cron: "30 2 * * *"
   workflow_dispatch: {}
 
 jobs:
@@ -64,14 +64,18 @@ jobs:
             echo "changed=true" >> "$GITHUB_OUTPUT"
           fi
 
-      # Build Linux; macOS can only be evaluated on this runner.
+      # Evaluate both platforms and reject build-dependent evaluation.
+      - name: Check flake outputs
+        if: steps.check.outputs.changed == 'true'
+        run: nix flake check --all-systems --no-build --no-write-lock-file --option allow-import-from-derivation false
+
+      # Build Linux; macOS is evaluated by the flake checks above.
       - name: Build
         id: build
         if: steps.check.outputs.changed == 'true'
         run: |
           path=$(nix build --no-link --print-out-paths .#nixosConfigurations.camellya.config.system.build.toplevel)
           echo "path=$path" >> "$GITHUB_OUTPUT"
-          nix eval ".#darwinConfigurations.silverwolf.config.system.build.toplevel.drvPath"
 
       - name: Push to the cache
         if: steps.check.outputs.changed == 'true'

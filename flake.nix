@@ -60,6 +60,7 @@
   };
 
   outputs = {
+    self,
     nixpkgs,
     home-manager,
     nixvim,
@@ -136,6 +137,9 @@
       nixpkgs.lib.filterAttrs (
         _: nixpkgs.lib.meta.availableOn pkgs.stdenv.hostPlatform
       ) (import ./pkgs pkgs));
+
+    # nix flake check evaluates nixosConfigurations but not darwinConfigurations.
+    checks.aarch64-darwin.silverwolf = self.darwinConfigurations.silverwolf.config.system.build.toplevel;
 
     nixosConfigurations.camellya = nixpkgs.lib.nixosSystem {
       inherit specialArgs;
