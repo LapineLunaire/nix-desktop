@@ -183,7 +183,7 @@ in {
       telemetry.metrics = false;
       load_direnv = "shell_hook";
       vim_mode = true;
-      hour_format = "hour24";
+      journal.hour_format = "hour24";
       theme = {
         mode = "dark";
         dark = "Gruvbox Dark Hard";
