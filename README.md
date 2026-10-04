@@ -7,7 +7,7 @@ NixOS and nix-darwin configuration for my desktop and MacBook.
 | camellya | x86_64-linux | `/persist/nix-config` |
 | silverwolf | aarch64-darwin | `~/projects/nix-config` |
 
-## Usage
+## Quick start
 
 Run from the host's checkout:
 
@@ -16,50 +16,47 @@ nh os switch .      # camellya
 nh darwin switch .  # silverwolf
 ```
 
-`nix develop` provides the formatter, language server, and secrets tools, and enables the formatting hook for this clone. The hook checks staged Nix files; if Alejandra is unavailable, it warns and skips the check. Run `direnv allow` to load the same shell through `.envrc`.
+For a new machine or a reinstall, see [installation and recovery](docs/install.md).
+
+## Edit and check
 
 ```sh
+nix develop
 alejandra .
 nix flake check --all-systems --no-build --no-write-lock-file --option allow-import-from-derivation false
-nix eval --no-write-lock-file --raw '.#darwinConfigurations.silverwolf.config.system.build.toplevel.drvPath'
 nix build '.#tibia'  # x86_64-linux only
 ```
 
-`nix flake check --no-build` and `nix eval` evaluate configuration and derivations; they do not build or activate either system. Silverwolf's toplevel is evaluated explicitly because `nix flake check` does not evaluate the systems under `darwinConfigurations`. Build and activation checks belong on the appropriate platform.
+- The shell provides Alejandra, nixd, and the SOPS tools. `direnv allow` loads it automatically.
+- Entering the shell enables the pre-commit hook for this clone, which checks staged Nix files. Without Alejandra, the hook warns and skips the check.
+- With `--all-systems`, flake checks evaluate both hosts, including assertions. They do not decrypt secrets or test cache access, Homebrew, or hardware, and builds and activation need the matching platform.
+- The [validation workflow](.forgejo/workflows/validate.yml) checks formatting and evaluates both hosts on pushes to main, on pull requests, and on manual dispatch.
 
-On Camellya, the `sops` shell alias reads the host key through doas:
+On installed Camellya, `sops hosts/camellya/secrets.yaml` uses the root-owned SSH host key through doas. See the [key setup](docs/install.md#4-ssh-host-key-and-secrets) before replacing that identity.
 
-```sh
-sops hosts/camellya/secrets.yaml
-```
-
-See [installation and recovery setup](docs/install.md) for disk layout, keys, Secure Boot, and TPM enrollment.
+Use Alejandra, keep related options and bindings together, put imports first, and explain workarounds in comments. Commit subjects use `scope: description`.
 
 ## Automated updates
 
-The Forgejo workflow runs daily at 04:00 UTC (`0 4 * * *`) or manually. [Schedules use UTC by default](https://forgejo.org/docs/v15.0/user/actions/reference/#onschedule). Both jobs use the shared `nixos` host runner configured in `nix-server`.
+The [update workflow](.forgejo/workflows/flake-update.yml) runs on the shared `nixos` runner from `nix-server`, daily at 02:30 UTC and on manual dispatch. [Forgejo schedules default to UTC](https://forgejo.org/docs/v15.0/user/actions/reference/#onschedule).
 
-The Tibia job refreshes the unversioned download's hash. On a change, it builds Tibia, then signs and pushes the update. The flake-update job waits for Tibia to succeed, checks out the branch again to include that commit, and updates `flake.lock`. When the lock changes, it builds Camellya's closure and evaluates Silverwolf's toplevel, then signs and pushes the lockfile. Silverwolf is only evaluated on this Linux runner. If `ATTIC_TOKEN` is set, Camellya's closure is uploaded to the Attic `desktop` cache before the push; a failed upload prevents the push.
+1. The `tibia` job refreshes Tibia's download hash, then builds, signs, and pushes any change.
+2. After it succeeds, the `update` job checks out the branch again and updates `flake.lock`.
+3. When the lock changes, the job evaluates both hosts, builds Camellya, then signs and pushes the lockfile.
 
-The 04:00 schedule leaves a buffer after the servers' 03:00 UTC upgrade checks, which have up to 15 minutes of jitter and can restart the runner guest. It does not wait for upgrades to finish, so long upgrades can still overlap. Desktop activation remains manual.
+With `ATTIC_TOKEN` set, the workflow uploads Camellya's system closure to the `desktop` Attic cache before pushing, and an upload failure blocks the push. Camellya's [cache module](hosts/camellya/binary-cache.nix) reads its pull token from SOPS.
 
-## Layout
+The schedule follows the server update workflow and the host upgrades but does not wait for either to finish. The CI store reset and the host upgrades can interrupt long or manual runs. Desktop activation stays manual.
 
-- `hosts/`: machine-specific hardware, filesystems, persistence, secrets, and applications. Camellya's desktop and gaming features are grouped in `desktop.nix` and `gaming.nix`.
-- `modules/`: shared Nix settings and OS defaults. The flake exports the NixOS and Darwin modules for reuse. The exported Secure Boot module includes Lanzaboote and is also used to compose Camellya; the desktop module needs no extra flake arguments.
-- `users/carmilla/`: account and Home Manager configuration, plus wallpapers.
-- `pkgs/`: the Tibia package; `overlays.nix` adds it and the application overrides.
+## Where to change things
 
-## Conventions
+- [`hosts/`](hosts/): hardware, filesystems, persistence, secrets, and host applications.
+- [`modules/`](modules/): shared OS defaults and the exported NixOS and Darwin modules.
+- [`users/carmilla/`](users/carmilla/): account, Home Manager, and wallpapers.
+- [`pkgs/`](pkgs/) and [`overlays.nix`](overlays.nix): Tibia and application overrides.
 
-Use Alejandra and keep bindings near their consumers. Use ordinary `let` bindings for shared values; reserve imports for separate modules. Imports come first; related options stay together. Comments explain workarounds and choices that the code alone does not make clear. Commit subjects use `scope: description`.
+## Before switching
 
-## Host notes
+On Camellya, root, `/tmp`, and `/var/tmp` are tmpfs, and `/home` is its own persistent volume. Check the [persisted state](hosts/camellya/persistence.nix) and keep backups. Home Manager installs the display layout and default applications as writable files; boot, and any switch that changes the Home Manager generation, restores the declared values. The [kernel](hosts/camellya/default.nix) targets Zen 5. For the stock kernel, replace the `boot.kernelPackages` override with `pkgs.linuxPackages_7_2`.
 
-- Camellya is configured with a tmpfs root, `/tmp`, and `/var/tmp`. Persistent state is listed in `hosts/camellya/persistence.nix`; `/home` has its own filesystem. Persistence does not provide a backup.
-- Its kernel targets Zen 5 explicitly so other machines can build it. To use the stock kernel, replace the override with `pkgs.linuxPackages_7_2`.
-- Camellya's user profile precedes the system profile on PATH, so interactive commands prefer uutils. The system profile retains GNU utilities, including commands uutils omits. The development shell includes uutils on both platforms; Silverwolf's user profile does not add them.
-- WirePlumber gives the RODECaster nodes and FiiO output fixed names for loopback routing, so the routing needs no device serial. PipeWire accepts [standard JSON configuration](https://docs.pipewire.org/page_man_pipewire_conf_5.html).
-- Wallpaper paths reference the tracked images in the Nix store, so they remain available independently of the checkout. Home Manager writes Camellya's MIME and monitor settings as writable copies; rebuilds restore the declared values.
-- Camellya reads the private `desktop` cache using the `attic-pull-token` SOPS secret. Its token is rendered into a root-only netrc file. The flake still evaluates without decrypting secrets; cache access and hardware operation need checks on the running host.
-- Silverwolf's Homebrew activation updates and upgrades packages and removes undeclared formulae and casks. Review `hosts/silverwolf/default.nix` before switching. These downloads and macOS permissions are outside Nix evaluation.
+On Silverwolf, activation updates and upgrades Homebrew packages and removes undeclared formulae and casks. Review the [package list](hosts/silverwolf/default.nix) first.

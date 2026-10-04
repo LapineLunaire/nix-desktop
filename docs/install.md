@@ -1,42 +1,36 @@
-# Installation
+# Installation and recovery
 
-Replace `<repo>` with the repository URL before running either host's clone command.
+Replace `<repo>` with the repository URL. After installation, use the [README quick start](../README.md#quick-start) for routine switches.
 
 ## Camellya
 
-Boot an x86_64 NixOS installer in UEFI mode and run these commands as root in Bash. This procedure creates a fresh installation on `/dev/nvme0n1`; confirm the target with `lsblk` because the formatting steps erase its contents. Keep the LUKS passphrase available through the first boots. The configured kernel targets Zen 5; review that target before installing on different hardware.
+Boot an x86_64 NixOS installer in UEFI mode. Run installer commands as root in Bash. The kernel targets Zen 5; on other hardware, review `hosts/camellya/default.nix`, `hardware-configuration.nix`, and `displays.nix`.
 
-**1. Partition**
+### 1. Create the disk layout
+
+These commands erase the disk. Confirm `/dev/nvme0n1` with `lsblk` before continuing, and keep the LUKS passphrase for recovery. The 200G and 100G volume sizes are examples; adjust them and leave space for `/home`.
 
 ```sh
+lsblk
 parted /dev/nvme0n1 -- mklabel gpt
 parted /dev/nvme0n1 -- mkpart ESP fat32 1MiB 1GiB
 parted /dev/nvme0n1 -- set 1 esp on
 parted /dev/nvme0n1 -- mkpart primary 1GiB 100%
-
 mkfs.vfat -F32 /dev/nvme0n1p1
-```
 
-**2. Create the LUKS2 container, the LVM volumes, and their filesystems**
-
-```sh
 cryptsetup luksFormat --type luks2 /dev/nvme0n1p2
 cryptsetup open /dev/nvme0n1p2 cryptroot
-
 pvcreate /dev/mapper/cryptroot
 vgcreate camellya /dev/mapper/cryptroot
 lvcreate -L 200G -n nix camellya
 lvcreate -L 100G -n persist camellya
 lvcreate -l 100%FREE -n home camellya
-
 mkfs.xfs /dev/camellya/nix
 mkfs.xfs /dev/camellya/persist
 mkfs.xfs /dev/camellya/home
 ```
 
-The volume sizes are examples, not sizes enforced by Nix. Adjust them to the disk and leave space for `/home`. TPM2 enrollment happens after Secure Boot verification (step 8); the passphrase keyslot stays as fallback.
-
-**3. Mount**
+### 2. Mount
 
 ```sh
 mount -t tmpfs -o size=2G,mode=755 none /mnt
@@ -47,7 +41,7 @@ mount -o noatime,nosuid,nodev /dev/camellya/persist /mnt/persist
 mount -o noatime,nosuid,nodev /dev/camellya/home /mnt/home
 ```
 
-**4. Clone the repo and update the hardware identifiers**
+### 3. Checkout and UUIDs
 
 ```sh
 git clone <repo> /mnt/persist/nix-config
@@ -55,65 +49,57 @@ cd /mnt/persist/nix-config
 blkid /dev/nvme0n1p1 /dev/nvme0n1p2 /dev/camellya/nix /dev/camellya/persist /dev/camellya/home
 ```
 
-Replace the five `by-uuid` identifiers in `hosts/camellya/hardware-configuration.nix` with the values reported by `blkid`: the EFI filesystem, LUKS container, and three XFS filesystems. Preserve the tmpfs root, `neededForBoot`, mount options, and hardware settings. Formatting generates new UUIDs; do not retain the committed values without checking them.
+Replace all five `by-uuid` values in `hosts/camellya/hardware-configuration.nix`: EFI, LUKS, `/nix`, `/persist`, `/home`. Formatting creates new UUIDs. Preserve the tmpfs root, `neededForBoot`, mount options, and hardware settings.
 
-**5. Prepare the SSH host key and secrets**
+### 4. SSH host key and secrets
 
-Restore the existing host key and its `.pub` file to `/mnt/persist/etc/ssh/` if a backup is available; the private key must be owned by root with mode `0600`. Otherwise generate a new key:
+Create `/mnt/persist/etc/ssh/` and restore the host key and `.pub` there; the private key must be root-owned with mode `0600`. With the original key, existing secrets need no re-encryption.
+
+If no backup exists, generate a key and obtain its age recipient:
 
 ```sh
 mkdir -p /mnt/persist/etc/ssh
 ssh-keygen -t ed25519 -N "" -f /mnt/persist/etc/ssh/ssh_host_ed25519_key
-```
-
-For a new key, use the pinned tools to obtain its age recipient:
-
-```sh
 nix --extra-experimental-features 'nix-command flakes' shell --inputs-from . nixpkgs#ssh-to-age \
   -c ssh-to-age < /mnt/persist/etc/ssh/ssh_host_ed25519_key.pub
 ```
 
-Update `camellya_host` in `.sops.yaml`, then run the following with an existing authorized decryption identity available to SOPS:
+Update `camellya_host` in `.sops.yaml`. The host key is the only recipient, so a new key cannot decrypt the existing file. Recreate the file with the keys `carmilla-password-hash`, `samba-username`, `samba-password`, and `attic-pull-token`, taking the values from the password manager:
 
 ```sh
+rm hosts/camellya/secrets.yaml
 nix --extra-experimental-features 'nix-command flakes' shell --inputs-from . nixpkgs#sops \
-  -c sops updatekeys hosts/camellya/secrets.yaml
+  -c sops hosts/camellya/secrets.yaml
 ```
 
-A newly generated key cannot decrypt the existing ciphertext. If the old identity is unavailable, recreate the secret values and encrypt them for the new recipient before installing. Restoring the original host key does not require re-encryption.
+User creation needs the password hash, so the file must be complete before installation. The installed `sops` alias is not available in the installer.
 
-The declared secrets are `carmilla-password-hash`, `samba-username`, `samba-password`, and `attic-pull-token`. Carmilla's password hash is needed before user creation. The installed user's `sops` alias is not available in the installer.
+### 5. Secure Boot signing keys
 
-**6. Prepare Secure Boot signing keys in persistent storage**
-
-The installer needs signing keys before it writes the bootloader. Restore an existing `/var/lib/sbctl` backup into `/mnt/persist/var/lib/sbctl`, or generate a new set there:
+Restore `/var/lib/sbctl` into `/mnt/persist/var/lib/sbctl`, or create new keys as shown next. Always bind-mount the persisted `/var/lib` into the target, because Lanzaboote needs `/var/lib/sbctl` during installation.
 
 ```sh
 install -d -m 0700 /mnt/persist/var/lib/sbctl
 mkdir -p /mnt/var/lib
 mount --bind /mnt/persist/var/lib /mnt/var/lib
+```
 
+For new keys only, create them in the persisted directory. The temporary config sets [sbctl's `keydir` and `guid`](https://github.com/Foxboron/sbctl/blob/0.18/docs/sbctl.conf.5.txt):
+
+```sh
 cat > /tmp/sbctl-install.yaml <<'EOF'
 keydir: /mnt/persist/var/lib/sbctl/keys
 guid: /mnt/persist/var/lib/sbctl/GUID
 EOF
-nix --extra-experimental-features 'nix-command flakes' shell --inputs-from . nixpkgs#sbctl -c sbctl --config /tmp/sbctl-install.yaml create-keys
+nix --extra-experimental-features 'nix-command flakes' shell --inputs-from . nixpkgs#sbctl \
+  -c sbctl --config /tmp/sbctl-install.yaml create-keys
 ```
 
-Skip `create-keys` when restoring keys. The bind mount makes the same persisted keys available at the install target's `/var/lib/sbctl`, where Lanzaboote expects them. See [sbctl 0.18's configuration reference](https://github.com/Foxboron/sbctl/blob/0.18/docs/sbctl.conf.5.txt) for `keydir` and `guid`.
-
-**7. Install**
+### 6. Install and reboot
 
 ```sh
 nixos-install --no-root-passwd --flake /mnt/persist/nix-config#camellya
 chown -R 1000:100 /mnt/persist/nix-config
-```
-
-Root password login stays locked, and Camellya disables root SSH login. The checkout belongs to `carmilla:users` (UID 1000, GID 100), so the user can edit it. Log in using Carmilla's password from the SOPS hash.
-
-Leave the checkout and unmount the target before rebooting:
-
-```sh
 cd /
 umount -R /mnt
 vgchange -an camellya
@@ -121,11 +107,13 @@ cryptsetup close cryptroot
 reboot
 ```
 
-The installation signs the boot entries using the keys from step 6. Boot the installed system with Secure Boot enforcement disabled while the new keys are not yet enrolled. Use the LUKS passphrase for this boot.
+The checkout belongs to `carmilla:users` (UID 1000, GID 100). Root has no password and cannot log in over SSH. Log in locally as `carmilla` with the password from SOPS.
 
-**8. Enroll Secure Boot, verify it, then enroll TPM2 unlock**
+Installation signs the boot entries. Leave Secure Boot enforcement disabled until the signing keys are enrolled; use the LUKS passphrase for the first boot.
 
-For new keys, enter the firmware's Secure Boot Setup Mode, preserving the forbidden-signature database (`dbx`), then boot the installed system again. Firmware-specific steps are in the [Lanzaboote guide](https://nix-community.github.io/lanzaboote/getting-started/enable-secure-boot.html). Check the signed boot entries and enroll the keys:
+### 7. Secure Boot, then TPM2
+
+For new signing keys, enter firmware Setup Mode, preserving `dbx`, then boot the installed system. Follow the [Lanzaboote firmware guide](https://nix-community.github.io/lanzaboote/getting-started/enable-secure-boot.html).
 
 ```sh
 doas sbctl status
@@ -133,44 +121,59 @@ doas sbctl verify
 doas sbctl enroll-keys --microsoft
 ```
 
-If restored signing keys are already enrolled, skip enrollment. Enable Secure Boot enforcement in firmware if needed and reboot. Confirm `bootctl status` reports Secure Boot enabled in user or deployed mode. Only then enroll TPM2 unlock with PCR 7 and a PIN. PCR 7 measures Secure Boot policy, not the identity of this specific OS; with Microsoft certificates enrolled, it is not sufficient by itself to restrict unattended unlocking to this installation. A PIN adds a user-held factor. See the [systemd enrollment reference](https://www.freedesktop.org/software/systemd/man/latest/systemd-cryptenroll.html).
+`sbctl verify` lists Lanzaboote's `*-bzImage.efi` files under `EFI/nixos` as unsigned, which is expected. Skip enrollment if restored keys are already enrolled. Enable enforcement in firmware, reboot, and confirm `bootctl status` reports Secure Boot as `enabled (user)` or `enabled (deployed)`.
 
-First verify that your recovery passphrase works with `doas cryptsetup open --test-passphrase /dev/nvme0n1p2`. Then replace any old TPM enrollment:
+Only then verify the recovery passphrase and enroll TPM2 with a PIN:
 
 ```sh
+doas cryptsetup open --test-passphrase /dev/nvme0n1p2
 doas systemd-cryptenroll --tpm2-device=auto --tpm2-pcrs=7 --tpm2-with-pin=yes --wipe-slot=tpm2 /dev/nvme0n1p2
 ```
 
-The combined command adds the new token before removing older TPM tokens; password slots remain intact. Reboot and verify that TPM unlock requests the PIN. A Nix rebuild does not change existing LUKS tokens: this enrollment is a separate administrative step. Keep the passphrase keyslot for recovery. Back up the SSH host key and `/var/lib/sbctl` securely for future reinstalls.
+This replaces old TPM tokens while retaining password slots. Reboot and confirm the PIN prompt. Rebuilds do not enroll LUKS tokens. PCR 7 measures Secure Boot policy; with Microsoft certificates enrolled, it does not identify this OS. Keep the PIN and recovery passphrase. See `man systemd-cryptenroll` on Camellya for the installed version's enrollment reference.
+
+### Recovery
+
+- **TPM unlock failure:** use the LUKS passphrase. Once Secure Boot is verified again, repeat the TPM enrollment in step 7.
+- **Installer access:** skip all formatting. Unlock and activate the existing volumes, then mount them as in [step 2](#2-mount):
+
+  ```sh
+  cryptsetup open /dev/nvme0n1p2 cryptroot
+  vgchange -ay camellya
+  ```
+
+- **Reinstall:** reuse the mounted checkout and existing UUIDs, restore the SSH and signing keys if needed, bind-mount the persisted `/var/lib` as in step 5, then run step 6.
+- **Backups:** keep secure copies of `/home`, the needed `/persist` data, the SSH host key, and `/var/lib/sbctl`. Persistence alone is not a backup. Keep secret values in the password manager.
 
 ## Silverwolf
 
-Start with Apple Silicon macOS and an existing `carmilla` account with home directory `/Users/carmilla`. Install [Homebrew](https://brew.sh/) and [multi-user Nix](https://nix.dev/manual/nix/2.34/installation/installing-binary.html), complete their shell setup, and verify `brew --version` and `nix --version` in a new terminal. Sign in to the Mac App Store for the declared `masApps`.
+Before the first switch, you need:
 
-nix-darwin manages Homebrew packages but does not install Homebrew itself. If Homebrew is missing, activation prints an error and skips the declared brews, casks, and Mac App Store apps without aborting.
+- Apple Silicon and macOS 26 or later for the declared [Homebrew `container` formula](https://formulae.brew.sh/formula/container).
+- An existing `carmilla` account at `/Users/carmilla`.
+- [Homebrew](https://brew.sh/) and [multi-user Nix](https://nix.dev/manual/nix/2.34/installation/installing-binary.html); complete shell setup and check `brew --version` and `nix --version` in a new terminal.
+- A Mac App Store sign-in for `masApps`.
+- App Management permission for the terminal (**System Settings > Privacy & Security > App Management**), so activation can replace existing applications.
+
+Review `hosts/silverwolf/default.nix` first. Activation updates and upgrades Homebrew packages and removes undeclared formulae and casks. nix-darwin does not install Homebrew; if Homebrew is missing, activation reports an error and skips Homebrew packages without aborting.
 
 ```sh
 mkdir -p ~/projects
 git clone <repo> ~/projects/nix-config
 cd ~/projects/nix-config
-```
-
-Review the Homebrew list before activation: cleanup removes undeclared formulae and casks. First activation, before `nh` exists, uses the nix-darwin input pinned by this checkout:
-
-```sh
 sudo nix --extra-experimental-features 'nix-command flakes' run --inputs-from . nix-darwin#darwin-rebuild \
   -- switch --flake .#silverwolf
 ```
 
-## Manual post-install steps
+The first switch uses this checkout's pinned nix-darwin because `nh` is not installed yet. Then create `~/Pictures/Screenshots`.
 
-Run `ssh-keygen -K` in a new private directory for each YubiKey to retrieve its resident SSH key handles. OpenSSH prompts before overwriting a key file; declining stops the remaining downloads.
+## YubiKey SSH and Git signing (both hosts)
 
-Both keys in `users/carmilla/ssh-keys.nix` embed the application `ssh:lapine`. With the default all-zero resident user ID, OpenSSH writes `id_ed25519_sk_rk_lapine` and its `.pub` companion. Other resident user IDs add a suffix and cannot be determined from the public keys. See the pinned [OpenSSH implementation](https://github.com/openssh/openssh-portable/blob/V_10_5_P1/ssh-keygen.c#L3095-L3213) for filename handling.
+Run `ssh-keygen -K` in a separate private directory for each YubiKey. Match the downloaded public key against `users/carmilla/ssh-keys.nix`, then move the selected key pair to:
 
-Match the downloaded public key against `users/carmilla/ssh-keys.nix`, then move the selected pair to `~/.ssh/id_ed25519_sk_rk_carmilla` and `~/.ssh/id_ed25519_sk_rk_carmilla.pub`. SSH and Git signing use this filename; renaming leaves the embedded application unchanged. Keep the other YubiKey's files separately.
+```text
+~/.ssh/id_ed25519_sk_rk_carmilla
+~/.ssh/id_ed25519_sk_rk_carmilla.pub
+```
 
-On macOS:
-
-- Create `~/Pictures/Screenshots`.
-- Grant App Management permission to the terminal emulator in System Settings > Privacy & Security > App Management.
+Both declared keys embed the application `ssh:lapine`, so [OpenSSH saves them](https://github.com/openssh/openssh-portable/blob/V_10_5_P1/ssh-keygen.c#L3095-L3213) as `id_ed25519_sk_rk_lapine` and `.pub`, with `_<user-id>` appended for a non-default resident user ID. Renaming the files does not change the embedded application. Separate directories prevent the second download from overwriting the first key's files or stopping at the overwrite prompt.
