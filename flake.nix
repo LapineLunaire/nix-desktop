@@ -138,8 +138,11 @@
         _: nixpkgs.lib.meta.availableOn pkgs.stdenv.hostPlatform
       ) (import ./pkgs pkgs));
 
-    # nix flake check evaluates nixosConfigurations but not darwinConfigurations.
-    checks.aarch64-darwin.silverwolf = self.darwinConfigurations.silverwolf.config.system.build.toplevel;
+    # Evaluate both system derivations with flake check, including with --no-build.
+    checks = {
+      x86_64-linux.camellya = self.nixosConfigurations.camellya.config.system.build.toplevel;
+      aarch64-darwin.silverwolf = self.darwinConfigurations.silverwolf.config.system.build.toplevel;
+    };
 
     nixosConfigurations.camellya = nixpkgs.lib.nixosSystem {
       inherit specialArgs;
