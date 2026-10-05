@@ -4,7 +4,7 @@ Replace `<repo>` with the repository URL. After installation, use the [README qu
 
 ## Camellya
 
-Boot an x86_64 NixOS installer in UEFI mode. Run installer commands as root in Bash. The kernel targets Zen 5; on other hardware, review `hosts/camellya/default.nix`, `hardware-configuration.nix`, and `displays.nix`.
+Boot an x86_64 NixOS installer in UEFI mode with Secure Boot enforcement disabled. Run installer commands as root in Bash. The kernel targets Zen 5; on other hardware, review `hosts/camellya/default.nix`, `hardware-configuration.nix`, and `displays.nix`.
 
 ### 1. Create the disk layout
 
@@ -107,7 +107,7 @@ cryptsetup close cryptroot
 reboot
 ```
 
-The checkout belongs to `carmilla:users` (UID 1000, GID 100). Root has no password and cannot log in over SSH. Log in locally as `carmilla` with the password from SOPS.
+The checkout belongs to `carmilla:users` (UID 1000, GID 100). Root password login is locked, and root cannot log in over SSH. Log in locally as `carmilla` using the password whose hash you stored in SOPS.
 
 Installation signs the boot entries. Leave Secure Boot enforcement disabled until the signing keys are enrolled; use the LUKS passphrase for the first boot.
 
@@ -133,6 +133,8 @@ doas systemd-cryptenroll --tpm2-device=auto --tpm2-pcrs=7 --tpm2-with-pin=yes --
 This replaces old TPM tokens while retaining password slots. Reboot and confirm the PIN prompt. Rebuilds do not enroll LUKS tokens. PCR 7 measures Secure Boot policy; with Microsoft certificates enrolled, it does not identify this OS. Keep the PIN and recovery passphrase. See `man systemd-cryptenroll` on Camellya for the installed version's enrollment reference.
 
 ### Recovery
+
+The NixOS installer is unsigned, so temporarily disable Secure Boot to boot it. After recovery, re-enable enforcement and verify it as in step 7.
 
 - **TPM unlock failure:** use the LUKS passphrase. Once Secure Boot is verified again, repeat the TPM enrollment in step 7.
 - **Installer access:** skip all formatting. Unlock and activate the existing volumes, then mount them as in [step 2](#2-mount):

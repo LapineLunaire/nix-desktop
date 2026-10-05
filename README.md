@@ -28,6 +28,7 @@ nix build '.#tibia'  # x86_64-linux only
 ```
 
 - The shell provides Alejandra, nixd, and the SOPS tools. `direnv allow` loads it automatically.
+- Stage new files with `git add` before checking or switching; Git-backed flakes omit untracked files.
 - Entering the shell enables the pre-commit hook for this clone, which checks staged Nix files. Without Alejandra, the hook warns and skips the check.
 - With `--all-systems`, flake checks evaluate both hosts, including assertions. They do not decrypt secrets or test cache access, Homebrew, or hardware, and builds and activation need the matching platform.
 - The [validation workflow](.forgejo/workflows/validate.yml) checks formatting and evaluates both hosts on pushes to main, on pull requests, and on manual dispatch.
