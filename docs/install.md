@@ -53,7 +53,7 @@ Replace all five `by-uuid` values in `hosts/camellya/hardware-configuration.nix`
 
 ### 4. SSH host key and secrets
 
-Create `/mnt/persist/etc/ssh/` and restore the host key and `.pub` there; the private key must be root-owned with mode `0600`. With the original key, existing secrets need no re-encryption.
+Create `/mnt/persist/etc/ssh/` and restore `ssh_host_ed25519_key` and `ssh_host_ed25519_key.pub` there; the private key must be root-owned with mode `0600`. With the original key, existing secrets need no re-encryption.
 
 If no backup exists, generate a key and obtain its age recipient:
 
@@ -121,7 +121,7 @@ doas sbctl verify
 doas sbctl enroll-keys --microsoft
 ```
 
-`sbctl verify` lists Lanzaboote's `*-bzImage.efi` files under `EFI/nixos` as unsigned, which is expected. Skip enrollment if restored keys are already enrolled. Enable enforcement in firmware, reboot, and confirm `bootctl status` reports Secure Boot as `enabled (user)` or `enabled (deployed)`.
+`sbctl verify` lists Lanzaboote's `kernel-*.efi` files under `EFI/nixos` as unsigned, which is expected. Skip enrollment if restored keys are already enrolled. Enable enforcement in firmware, reboot, and confirm `bootctl status` reports Secure Boot as `enabled (user)` or `enabled (deployed)`.
 
 Only then verify the recovery passphrase and enroll TPM2 with a PIN:
 
@@ -130,7 +130,7 @@ doas cryptsetup open --test-passphrase /dev/nvme0n1p2
 doas systemd-cryptenroll --tpm2-device=auto --tpm2-pcrs=7 --tpm2-with-pin=yes --wipe-slot=tpm2 /dev/nvme0n1p2
 ```
 
-This replaces old TPM tokens while retaining password slots. Reboot and confirm the PIN prompt. Rebuilds do not enroll LUKS tokens. PCR 7 measures Secure Boot policy; with Microsoft certificates enrolled, it does not identify this OS. Keep the PIN and recovery passphrase. See `man systemd-cryptenroll` on Camellya for the installed version's enrollment reference.
+This replaces old TPM tokens while retaining password slots. Reboot and confirm the PIN prompt. Rebuilds do not enroll LUKS tokens. PCR 7 records the Secure Boot state and the certificates that authorized the boot images; it does not measure the kernel, initrd, or command line. Keep the PIN and recovery passphrase. See `man systemd-cryptenroll` on Camellya for the installed version's enrollment reference.
 
 ### Recovery
 

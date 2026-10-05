@@ -33,7 +33,7 @@ nix build '.#tibia'  # x86_64-linux only
 - With `--all-systems`, flake checks evaluate both hosts, including assertions. They do not decrypt secrets or test cache access, Homebrew, or hardware, and builds and activation need the matching platform.
 - The [validation workflow](.forgejo/workflows/validate.yml) checks formatting and evaluates both hosts on pushes to main, on pull requests, and on manual dispatch.
 
-On installed Camellya, `sops hosts/camellya/secrets.yaml` uses the root-owned SSH host key through doas. See the [key setup](docs/install.md#4-ssh-host-key-and-secrets) before replacing that identity.
+On installed Camellya, the `sops` shell alias derives the age identity from the root-owned SSH host key through doas, so `sops hosts/camellya/secrets.yaml` decrypts with that key. See the [key setup](docs/install.md#4-ssh-host-key-and-secrets) before replacing that identity.
 
 Use Alejandra, keep related options and bindings together, put imports first, and explain workarounds in comments. Commit subjects use `scope: description`.
 
@@ -47,7 +47,7 @@ The [update workflow](.forgejo/workflows/flake-update.yml) runs on the shared `n
 
 With `ATTIC_TOKEN` set, the workflow uploads Camellya's system closure to the `desktop` Attic cache before pushing, and an upload failure blocks the push. Camellya's [cache module](hosts/camellya/binary-cache.nix) reads its pull token from SOPS.
 
-The schedule follows the server update workflow and the host upgrades but does not wait for either to finish. The CI store reset and the host upgrades can interrupt long or manual runs. Desktop activation stays manual.
+The schedule follows the server update workflow and the server upgrades. The CI store reset and the server upgrades can interrupt manual runs, and a Sparkle upgrade still running at 03:30 can restart the runner during the scheduled run. Desktop activation stays manual.
 
 ## Where to change things
 
@@ -58,6 +58,6 @@ The schedule follows the server update workflow and the host upgrades but does n
 
 ## Before switching
 
-On Camellya, root, `/tmp`, and `/var/tmp` are tmpfs, and `/home` is its own persistent volume. Check the [persisted state](hosts/camellya/persistence.nix) and keep backups. Home Manager installs the display layout and default applications as writable files; boot, and any switch that changes the Home Manager generation, restores the declared values. The [kernel](hosts/camellya/default.nix) targets Zen 5. For the stock kernel, replace the `boot.kernelPackages` override with `pkgs.linuxPackages_7_2`.
+On Camellya, root, `/tmp`, and `/var/tmp` are tmpfs, and `/home` is its own persistent volume. Check the [persisted state](hosts/camellya/persistence.nix) and keep backups. Home Manager installs the display layout and default applications as writable files. Each boot, and each switch that changes the Home Manager generation, restores the declared values. The [kernel](hosts/camellya/default.nix) targets Zen 5. For the stock kernel, replace the `boot.kernelPackages` override with `pkgs.linuxPackages_7_2`.
 
 On Silverwolf, activation updates and upgrades Homebrew packages and removes undeclared formulae and casks. Review the [package list](hosts/silverwolf/default.nix) first.
