@@ -1,10 +1,10 @@
 name: Update
 
-# Follow server CI and the servers' 01:30 UTC upgrades, which can restart this runner.
+# Follow server CI and the servers' 02:30 UTC upgrades, which can restart this runner.
 # The schedule does not wait for upgrades; the lock update waits for the Tibia job.
 on:
   schedule:
-    - cron: "30 2 * * *"
+    - cron: "30 3 * * *"
   workflow_dispatch: {}
 
 jobs:

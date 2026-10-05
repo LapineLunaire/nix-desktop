@@ -38,7 +38,7 @@ Use Alejandra, keep related options and bindings together, put imports first, an
 
 ## Automated updates
 
-The [update workflow](.forgejo/workflows/flake-update.yml) runs on the shared `nixos` runner from `nix-server`, daily at 02:30 UTC and on manual dispatch. [Forgejo schedules default to UTC](https://forgejo.org/docs/v15.0/user/actions/reference/#onschedule).
+The [update workflow](.forgejo/workflows/flake-update.yml) runs on the shared `nixos` runner from `nix-server`, daily at 03:30 UTC and on manual dispatch. [Forgejo schedules default to UTC](https://forgejo.org/docs/v15.0/user/actions/reference/#onschedule).
 
 1. The `tibia` job refreshes Tibia's download hash, then builds, signs, and pushes any change.
 2. After it succeeds, the `update` job checks out the branch again and updates `flake.lock`.
