@@ -210,6 +210,8 @@ in {
       else pkgs.ghostty;
     settings = {
       theme = "Gruvbox Dark Hard";
+      font-family = "JetBrainsMono Nerd Font";
+      font-size = 11;
       background-opacity = 0.95;
       window-padding-x = 8;
       window-padding-y = 8;

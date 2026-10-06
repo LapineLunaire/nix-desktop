@@ -8,8 +8,24 @@
 
     programs.plasma = let
       wallpapers = ./wallpapers;
+      interfaceFont = {
+        family = "Noto Sans";
+        pointSize = 11;
+      };
     in {
       enable = true;
+
+      fonts = {
+        general = interfaceFont;
+        menu = interfaceFont;
+        toolbar = interfaceFont;
+        windowTitle = interfaceFont;
+        small = interfaceFont // {pointSize = 9;};
+        fixedWidth = {
+          family = "JetBrainsMono Nerd Font";
+          pointSize = 11;
+        };
+      };
 
       configFile."kdeglobals".General = {
         TerminalApplication = "ghostty";
@@ -58,7 +74,7 @@
       panels = [
         {
           location = "top";
-          height = 24;
+          height = 30;
           floating = false;
           opacity = "translucent";
           widgets = [
@@ -83,7 +99,7 @@
         }
         {
           location = "bottom";
-          height = 40;
+          height = 44;
           floating = true;
           lengthMode = "fit";
           hiding = "dodgewindows";
