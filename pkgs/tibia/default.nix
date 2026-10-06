@@ -31,6 +31,7 @@
   vulkan-loader,
   wayland,
   zlib,
+  zstd,
 }: let
   tibia-unwrapped = stdenvNoCC.mkDerivation {
     pname = "tibia-unwrapped";
@@ -86,6 +87,7 @@ in
       vulkan-loader
       wayland
       zlib
+      zstd
     ];
 
     # The bundled Qt client needs XWayland.
