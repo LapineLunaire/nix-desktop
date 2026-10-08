@@ -7,6 +7,11 @@ on:
     - cron: "30 3 * * *"
   workflow_dispatch: {}
 
+# Queue scheduled and manual updates per branch without cancelling the running update.
+concurrency:
+  group: desktop-updates-${{ github.ref }}
+  cancel-in-progress: false
+
 jobs:
   tibia:
     runs-on: nixos
@@ -14,6 +19,8 @@ jobs:
       - name: Checkout
         uses: actions/checkout@93cb6efe18208431cddfb8368fd83d5badbf9bfd # v5
         with:
+          # Queued runs include commits pushed by the previous update.
+          ref: ${{ github.ref_name }}
           persist-credentials: false
 
       # Match fetchurl's Accept-Encoding handling and refresh the unversioned download.

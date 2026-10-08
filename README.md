@@ -41,6 +41,8 @@ Use Alejandra, keep related options and bindings together, put imports first, an
 
 The [update workflow](.forgejo/workflows/flake-update.yml) runs on the shared `nixos` runner from `nix-server`, daily at 03:30 UTC and on manual dispatch. [Forgejo schedules default to UTC](https://forgejo.org/docs/v15.0/user/actions/reference/#onschedule).
 
+Forgejo queues updates per branch using its [best-effort concurrency control](https://forgejo.org/docs/v15.0/user/actions/reference/#concurrency). Each job checks out the latest branch so queued runs include earlier update commits.
+
 1. The `tibia` job refreshes Tibia's download hash, then builds, signs, and pushes any change.
 2. After it succeeds, the `update` job checks out the branch again and updates `flake.lock`.
 3. When the lock changes, the job evaluates both hosts, builds Camellya, then signs and pushes the lockfile.
