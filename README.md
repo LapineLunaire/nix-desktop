@@ -33,7 +33,7 @@ nix build '.#tibia'  # x86_64-linux only
 - With `--all-systems`, flake checks evaluate both hosts, including assertions. They do not decrypt secrets or test cache access, Homebrew, or hardware, and builds and activation need the matching platform.
 - The [validation workflow](.forgejo/workflows/validate.yml) checks formatting and evaluates both hosts on pushes to main, on pull requests, and on manual dispatch.
 
-On installed Camellya, the `sops` shell alias derives the age identity from the root-owned SSH host key through doas, so `sops hosts/camellya/secrets.yaml` decrypts with that key. See the [key setup](docs/install.md#4-ssh-host-key-and-secrets) before replacing that identity.
+On installed Camellya, the `sops` shell alias derives the age identity from the root-owned SSH host key through doas, so `sops hosts/camellya/secrets.yaml` decrypts with that key. See the [key setup](docs/keys.md#host-identity-and-secrets) before replacing that identity.
 
 Use Alejandra, keep related options and bindings together, put imports first, and explain workarounds in comments. Commit subjects use `scope: description`.
 
