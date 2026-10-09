@@ -6,6 +6,8 @@
     kwin-x11
   ];
 
+  programs.kde-pim.enable = false;
+
   programs.nix-ld.enable = true;
 
   programs.obs-studio = {
