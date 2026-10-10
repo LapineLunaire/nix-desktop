@@ -34,7 +34,12 @@
     ];
   };
   # Use doas for tools that invoke sudo.
-  environment.systemPackages = [pkgs.ghostty.terminfo pkgs.doas-sudo-shim];
+  environment.systemPackages = [
+    pkgs.ghostty.terminfo
+    pkgs.doas-sudo-shim
+    # smartd references smartmontools but does not add smartctl to PATH.
+    pkgs.smartmontools
+  ];
 
   security.polkit.enable = true;
 
@@ -45,7 +50,7 @@
     priority = 100;
   };
 
-  time.timeZone = lib.mkDefault "UTC";
+  time.timeZone = lib.mkDefault "Europe/Amsterdam";
 
   i18n = {
     defaultLocale = "en_US.UTF-8";
@@ -58,6 +63,7 @@
   };
 
   console = {
+    keyMap = "colemak";
     font = "Lat2-Terminus16";
     earlySetup = true;
   };
@@ -66,6 +72,7 @@
   networking.nftables.enable = true;
 
   programs.zsh.enable = true;
+  programs.nix-ld.enable = true;
 
   # Also provide an editor for root shells.
   programs.neovim = {
@@ -87,6 +94,7 @@
   services.dbus.implementation = "broker";
   services.fstrim.enable = true;
   services.fwupd.enable = true;
+  services.smartd.enable = true;
 
   services.chrony = {
     enable = true;
@@ -96,6 +104,7 @@
 
   services.openssh = {
     enable = true;
+    openFirewall = false;
     settings = {
       PermitRootLogin = "no";
       PasswordAuthentication = false;

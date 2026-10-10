@@ -12,7 +12,7 @@ Before the first switch, you need:
 - A Mac App Store sign-in for `masApps`.
 - App Management permission for the terminal (**System Settings > Privacy & Security > App Management**), so activation can replace existing applications.
 
-Review `hosts/silverwolf/default.nix` first. Activation updates and upgrades Homebrew packages and removes undeclared formulae and casks. nix-darwin does not install Homebrew; if Homebrew is missing, activation reports an error and skips Homebrew packages without aborting.
+Review [the Homebrew package list](../modules/darwin/homebrew.nix) first. Activation updates and upgrades Homebrew packages and removes undeclared formulae and casks. nix-darwin does not install Homebrew; if Homebrew is missing, activation reports an error and skips Homebrew packages without aborting.
 
 ## First switch
 

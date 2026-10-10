@@ -88,6 +88,13 @@
       ];
     };
 
+    gamingModule = {
+      imports = [
+        inputs.aagl.nixosModules.default
+        ./modules/nixos/gaming.nix
+      ];
+    };
+
     homeManagerModule = {
       home-manager = {
         useGlobalPkgs = true;
@@ -102,6 +109,7 @@
     nixosModules = {
       host-base = ./modules/nixos/host-base;
       desktop = ./modules/nixos/desktop;
+      gaming = gamingModule;
       secure-boot = secureBootModule;
       security = ./modules/nixos/security.nix;
     };

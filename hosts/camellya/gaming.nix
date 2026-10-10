@@ -1,10 +1,5 @@
 {inputs, ...}: {
-  imports = [inputs.aagl.nixosModules.default];
-
-  virtualisation.waydroid.enable = true;
-
-  # Wine/Proton synchronization support.
-  boot.kernelModules = ["ntsync"];
+  imports = [inputs.self.nixosModules.gaming];
 
   # The Steam Frame wireless adapter uses 6 GHz, which the world regulatory domain disables.
   boot.extraModprobeConfig = ''
@@ -23,14 +18,4 @@
     iifname "wlframe" tcp dport { 27036, 27037 } accept
     iifname "wlframe" udp dport { 10400, 10401, 27031-27036 } accept
   '';
-
-  environment.sessionVariables = {
-    PROTON_ENABLE_WAYLAND = "1";
-    PROTON_ENABLE_HDR = "1";
-  };
-
-  programs.gamemode.enable = true;
-  programs.steam.enable = true;
-  programs.anime-games-launcher.enable = true;
-  programs.honkers-railway-launcher.enable = true;
 }

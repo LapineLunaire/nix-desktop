@@ -53,8 +53,8 @@ The schedule follows the server update workflow and the server upgrades. The CI 
 
 ## Where to change things
 
-- [`hosts/`](hosts/): hardware, filesystems, persistence, secrets, and host applications.
-- [`modules/`](modules/): shared OS defaults and the exported NixOS and Darwin modules.
+- [`hosts/`](hosts/): machine identity, hardware, filesystems, persistence, secrets, and network rules.
+- [`modules/`](modules/): shared OS defaults, NixOS desktop and gaming settings, and Darwin applications.
 - [`users/carmilla/`](users/carmilla/): account, Home Manager, and wallpapers.
 - [`pkgs/`](pkgs/) and [`overlays.nix`](overlays.nix): Tibia and application overrides.
 
@@ -62,4 +62,4 @@ The schedule follows the server update workflow and the server upgrades. The CI 
 
 On Camellya, root, `/tmp`, and `/var/tmp` are tmpfs, and `/home` is its own persistent volume. Check the [persisted state](hosts/camellya/persistence.nix) and keep backups. Home Manager installs the display layout and default applications as writable files. Each boot, and each switch that changes the Home Manager generation, restores the declared values. The [kernel](hosts/camellya/default.nix) targets Zen 5. For the stock kernel, replace the `boot.kernelPackages` override with `pkgs.linuxPackages_7_2`.
 
-On Silverwolf, activation updates and upgrades Homebrew packages and removes undeclared formulae and casks. Review the [package list](hosts/silverwolf/default.nix) first.
+On Silverwolf, activation updates and upgrades Homebrew packages and removes undeclared formulae and casks. Review the [package list](modules/darwin/homebrew.nix) first.

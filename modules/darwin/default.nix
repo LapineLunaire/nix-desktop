@@ -7,6 +7,7 @@
   imports = [
     ../host.nix
     ../nix-settings.nix
+    ./homebrew.nix
   ];
 
   programs.zsh.enable = true;
@@ -27,7 +28,7 @@
 
   security.pam.services.sudo_local.touchIdAuth = true;
 
-  time.timeZone = lib.mkDefault "UTC";
+  time.timeZone = lib.mkDefault "Europe/Amsterdam";
 
   nix = {
     gc = {

@@ -9,20 +9,10 @@
     ./displays.nix
     ./pipewire.nix
     ./samba-mounts.nix
-    ./desktop.nix
     ./gaming.nix
   ];
 
   networking.hostName = "camellya";
-
-  time.timeZone = "Europe/Amsterdam";
-
-  console.keyMap = "colemak";
-  services.xserver.xkb = {
-    layout = "us,us";
-    variant = "colemak,";
-    options = "grp:win_space_toggle";
-  };
 
   host.flakePath = "/persist/nix-config";
 
@@ -49,23 +39,16 @@
   powerManagement.cpuFreqGovernor = "powersave";
 
   # Allow SSH from the LANs and VPNs below.
-  services.openssh.openFirewall = false;
   # WinBox discovery (UDP 5678) is LAN-only.
   networking.firewall.extraInputRules = ''
     ip saddr { 10.28.64.0/24, 10.28.96.0/24, 10.100.0.0/24, 10.1.0.0/24 } tcp dport 22 accept
     ip saddr 10.28.64.0/24 udp dport 5678 accept
   '';
 
-  services.smartd = {
-    enable = true;
-    notifications.systembus-notify.enable = true;
-  };
-  # smartd references smartmontools but does not add smartctl to PATH.
-  environment.systemPackages = [pkgs.smartmontools];
-
   services.udev.packages = [pkgs.wooting-udev-rules];
 
   services.xserver.videoDrivers = ["nvidia"];
+  programs.obs-studio.package = pkgs.obs-studio.override {cudaSupport = true;};
 
   system.stateVersion = "26.11";
   home-manager.users.carmilla.home.stateVersion = "26.11";

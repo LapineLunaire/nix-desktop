@@ -1,4 +1,4 @@
-{
+{pkgs, ...}: {
   imports = [
     ./fonts.nix
   ];
@@ -31,7 +31,35 @@
     "/share/xdg-desktop-portal"
   ];
 
+  environment.plasma6.excludePackages = with pkgs.kdePackages; [
+    elisa
+    kate
+    konsole
+    kwin-x11
+  ];
+
+  hardware.graphics = {
+    enable = true;
+    enable32Bit = true;
+  };
+
+  programs.kde-pim.enable = false;
+
+  programs.obs-studio = {
+    enable = true;
+    enableVirtualCamera = true;
+    plugins = with pkgs.obs-studio-plugins; [
+      obs-pipewire-audio-capture
+    ];
+  };
+
   services.pcscd.enable = true;
+
+  services.xserver.xkb = {
+    layout = "us,us";
+    variant = "colemak,";
+    options = "grp:win_space_toggle";
+  };
 
   services.kmscon = {
     enable = true;
@@ -46,6 +74,8 @@
     freeSwapThreshold = 2;
     enableNotifications = true;
   };
+
+  services.smartd.notifications.systembus-notify.enable = true;
 
   services.displayManager.plasma-login-manager.enable = true;
 
