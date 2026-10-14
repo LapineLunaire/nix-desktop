@@ -42,7 +42,7 @@
     src = fetchurl {
       url = "https://static.tibia.com/download/tibia.x64.tar.gz";
       curlOptsList = ["--compressed"];
-      sha256 = "0vlbawr1g8lz26kj0sjfb206zbc9cx8yw9lng6v2fmpmnakr4ghx";
+      sha256 = "176m123ayqzg2yqys57kvlm0mncy5ya0cfa5xqilh45p8cwn4qsn";
     };
 
     dontBuild = true;
